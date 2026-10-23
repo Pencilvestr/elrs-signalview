@@ -23,18 +23,26 @@ return function()
     assert(selected,'Test source not discovered')
     local options={['Footer 1']=selected,['Footer 2']=selected,
       ['Footer 3']=selected,['Footer 4']=selected}
-    if index==14 then options={} end
+    if index>=14 then options={} end
     local w=app.create({x=0,y=0,w=800,h=480},options)
     w.moduleVersion='test'
     local values={99,-62,-65,8,29,250,97,-75,6,2}
     for i,s in ipairs(w.sensors) do s.value=values[i];s.current=true end
     if index==12 then w.sensors[8].current=false end
     if index==13 then w.sensors[8].value=nil;w.sensors[8].current=false end
+    if index==15 then
+      w.sensors[3].current=false
+      local now=getTime()
+      w.plotHistory={
+        {time=now-200,second=0,[1]=50,[2]=-80,colors={0,0},gap={[3]=true}},
+        {time=now-100,second=1,[1]=50,[2]=-80,colors={0,0},gap={[3]=true}}}
+    end
     for _,size in ipairs({{800,480},{320,240}}) do
       local seen={}
+      local lines=0
       lcd={drawText=function(x,y,str)
         if y>=size[2]-(size[1]>=600 and 64 or 36) then seen[str]=(seen[str] or 0)+1 end
-      end,drawFilledRectangle=function() end,drawLine=function() end}
+      end,drawFilledRectangle=function() end,drawLine=function() lines=lines+1 end}
       w.zone.w=size[1];w.zone.h=size[2]
       local savedW,savedH=LCD_W,LCD_H
       LCD_W,LCD_H=size[1],size[2]
@@ -50,8 +58,10 @@ return function()
         assert(seen[size[1]>=600 and 'UNSUPPORTED' or 'Unsup.']==4,'Unknown source accepted')
       elseif index==12 or index==13 then
         assert(seen[size[1]>=600 and '-- dBm' or '--']==4,'Missing/stale value shown')
-      else
+      elseif index==14 then
         for i,id in ipairs({6,5,4,7}) do assert(w.options.footer[i][1]==id,'Default changed') end
+      else
+        assert(lines==2,'Missing antenna must not draw an LQ-derived RSSI trace')
       end
     end
   end)
@@ -59,5 +69,5 @@ return function()
   print('FOOTER|'..index..'|'..tostring(ok))
   assert(ok,err)
   index=index+1
-  return index>14
+  return index>15
 end

@@ -26,6 +26,9 @@ def main():
     parser.add_argument('--footer',nargs=4,metavar='ELRS_SOURCE',help='Set four ELRS footer sources')
     parser.add_argument('--source-picker-probe',action='store_true',help='Open first MK3 footer source picker in settings')
     parser.add_argument('--picker-select-power',action='store_true',help='Select visible TPWR in the MK3 picker probe')
+    parser.add_argument('--profile',action='store_true',help='Measure Lua instruction budget and VM heap without functional-test overhead')
+    parser.add_argument('--widget-source',help='Alternate local Lua for controlled baseline comparisons')
+    parser.add_argument('--reference-source',help='Enable deterministic drawing/state comparison against this local Lua')
     args=parser.parse_args()
     width,height=RADIOS[args.radio]
     run=Path(args.run_dir).resolve()
@@ -62,13 +65,22 @@ def main():
         model.write_text(content)
     # The production widget file is copied unchanged.
     target=sd/'WIDGETS/SignalView';target.mkdir(parents=True,exist_ok=True)
-    source=PROJECT/'WIDGETS/SignalView/main.lua'
+    source=Path(args.widget_source).resolve() if args.widget_source else PROJECT/'WIDGETS/SignalView/main.lua'
+    if not source.is_relative_to(PROJECT.resolve()):raise RuntimeError('Widget source must remain in this project')
     shutil.copyfile(source,target/'main.lua')
     lab=sd/'WIDGETS/LabTest';lab.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(HERE/'instrument.lua',lab/'main.lua')
     shutil.copyfile(HERE/'threshold-tests.lua',lab/'threshold-tests.lua')
     shutil.copyfile(HERE/'smoothing-tests.lua',lab/'smoothing-tests.lua')
     shutil.copyfile(HERE/'footer-tests.lua',lab/'footer-tests.lua')
+    shutil.copyfile(HERE/'profile.lua',lab/'profile.lua')
+    (lab/'profile-enabled.lua').write_text('return '+('true' if args.profile else 'false')+'\n')
+    (lab/'reference-enabled.lua').write_text('return '+('true' if args.reference_source else 'false')+'\n')
+    shutil.copyfile(HERE/'equivalence-tests.lua',lab/'equivalence-tests.lua')
+    if args.reference_source:
+        reference=Path(args.reference_source).resolve()
+        if not reference.is_relative_to(PROJECT.resolve()):raise RuntimeError('Reference must remain in this project')
+        shutil.copyfile(reference,lab/'reference.lua')
     os.add_dll_directory(str(bindir))
     core=C.CDLL(str(bindir/'Qt6Core.dll'))
     sim=C.CDLL(str(bindir/f'libedgetx-{args.radio}-simulator.dll'))
@@ -175,6 +187,10 @@ def main():
         print('PHASE|connected',flush=True)
         streaming=True;wait(3)
         capture('04-connected')
+        if args.reference_source:
+            # The oracle chunks comparisons across callbacks so test code does
+            # not compete with a complete renderer for the Lua CPU budget.
+            wait(75)
         if args.demo:
             import math
             print('PHASE|demo',flush=True)

@@ -19,9 +19,9 @@ The source API exists in older EdgeTX versions, but that alone does not establis
 
 ```text
 SD card/
-└── WIDGETS/
-    └── SignalView/
-        └── main.lua
+â””â”€â”€ WIDGETS/
+    â””â”€â”€ SignalView/
+        â””â”€â”€ main.lua
 ```
 
 5. Safely eject USB storage or the SD card, then restart the radio.
@@ -32,7 +32,7 @@ The repository itself also contains `WIDGETS/SignalView/main.lua`; you can insta
 
 ## Supported view sizes
 
-Normal widget mode requires an area covering at least 95% of the radio screen's width and height, with a minimum area size of 300 × 240 pixels. This deliberately excludes small and multi-widget zones. Full-screen mode uses the complete radio screen.
+Normal widget mode requires an area covering at least 95% of the radio screen's width and height, with a minimum area size of 300 Ã— 240 pixels. This deliberately excludes small and multi-widget zones. Full-screen mode uses the complete radio screen.
 
 No prompt or compact summary is drawn in unsupported areas. If the widget looks blank, check the layout and top-bar setting first. Top-bar-specific layout adjustments are intentionally not provided.
 
@@ -64,6 +64,6 @@ Warning colors can be exercised using temporary Manual thresholds at the bench; 
 
 Restore the previous `main.lua`, restart, and restore its recorded widget settings if the schema changed. To uninstall, remove the widget instance from the model before removing its directory. This widget does not modify RF settings or install anything on the receiver.
 
-## Beta.3 footer settings
+## Footer settings
 
-Record existing settings before upgrading. Restart and re-add SignalView, restore thresholds, then select Footer 1–4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.
+Record existing settings before upgrading. Restart and re-add SignalView, restore thresholds, then select Footer 1â€“4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.

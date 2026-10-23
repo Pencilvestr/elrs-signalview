@@ -23,12 +23,12 @@ The deterministic ZIP and SHA-256 file appear in `dist/`. The packaging script r
 
 ## GitHub setup
 
-Create the public repository as `Pencilvestr/elrs-signalview` when ready. Suggested description: "ExpressLRS link-status and history widget for EdgeTX color-screen radios."
+The public repository is `Pencilvestr/elrs-signalview`. Description: "ExpressLRS link-status and history widget for EdgeTX color-screen radios."
 
 Suggested topics: `edgetx`, `expresslrs`, `lua`, `telemetry`, `radiomaster`, `widget`.
 
 Enable Issues and GitHub Actions. Optionally enable Discussions and private vulnerability reporting. The included workflow is read-only and does not publish or create tags automatically. It checks source syntax, repository links/assets and release packaging. Native tests remain a documented Windows procedure.
 
-Use a tag matching the version, such as `v0.2.0-beta.1`, and mark the first release as a prerelease. Upload the install ZIP and its SHA-256 file. Paste [the prepared release notes](RELEASE-NOTES.md) after confirming they match the final test record. Keep source archives distinct from the install ZIP.
+Use a tag matching the version, such as `v0.2.0`. Stable releases must not be marked as prereleases; use the prerelease label for beta tags. Upload the install ZIP and its SHA-256 file. Paste [the prepared release notes](RELEASE-NOTES.md) after confirming they match the final test record. Keep source archives distinct from the install ZIP.
 
 Publishing is a separate action from preparing this repository. Do not claim a repository, tag, CI run or release exists until it has actually been created and checked.

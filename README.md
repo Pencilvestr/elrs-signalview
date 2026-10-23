@@ -2,7 +2,7 @@
 
 A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Public beta: 0.2.0-beta.3.**
+**Stable release: 0.2.0.**
 
 ![SignalView showing changing signal levels, alert colors and scrolling history](docs/images/signalview-demo.gif)
 
@@ -22,7 +22,7 @@ It works in full screen and a single near-full-screen widget area. **Use a one-w
 
 ## Install
 
-[Download the beta installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0-beta.3/elrs-signalview-0.2.0-beta.3.zip) from the [beta release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0-beta.3).
+[Download the installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0/elrs-signalview-0.2.0.zip) from the [release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0).
 
 1. Back up your model and SD card.
 2. Copy `WIDGETS/SignalView` from this project into the SD card's existing `WIDGETS` directory.
@@ -36,7 +36,7 @@ See [installation and updating](docs/INSTALLATION.md) for the full procedure and
 
 ## Known issue
 
-Slight lag was reported on the MK3 with the selectable footer. The cause has not been measured. Performance optimization is planned.
+Slight lag was reported on the MK3 with the selectable footer. Version 0.2.0 reduces measured simulator Lua work and retained memory; confirmation on the physical MK3 is pending. See [performance results and limits](docs/PERFORMANCE.md).
 
 ## Default settings
 
@@ -67,7 +67,7 @@ This is a running list of setups reported working on physical radios. Reports de
 | --- | --- | --- | --- |
 | RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer bench test with an active receiver connection. Source-picker footer tested and reported working; slight lag noted. History scrolling and module-version display also confirmed. |
 
-The receiver model, receiver firmware and test duration for this report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
+This hardware report covers earlier beta builds; the 0.2.0 optimization has simulator coverage and awaits hardware confirmation. The receiver model, receiver firmware and test duration for this report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
 
 ### Simulator coverage
 
@@ -75,11 +75,11 @@ These targets passed native EdgeTX **2.12.5** tests. They are listed separately 
 
 | Radio / target | Resolution | Evidence |
 | --- | --- | --- |
-| TX16S MK3 | 800 × 480 | Native simulator; physical report above |
-| TX16S | 480 × 272 | Native simulator only |
-| TX15 | 480 × 320 | Native simulator only |
-| NV14 | 320 × 480 | Native simulator only |
-| PA01 | 320 × 240 | Native simulator only |
+| TX16S MK3 | 800 Ã— 480 | Native simulator; physical report above |
+| TX16S | 480 Ã— 272 | Native simulator only |
+| TX15 | 480 Ã— 320 | Native simulator only |
+| NV14 | 320 Ã— 480 | Native simulator only |
+| PA01 | 320 Ã— 240 | Native simulator only |
 
 Automatic RFMD decoding is for **ELRS 4.x**. A detected 3.x module disables Auto RSSI classification; use Manual. An unknown firmware version does not establish 4.x compatibility. See [testing evidence and limits](docs/TESTING.md).
 
@@ -96,3 +96,7 @@ Open a bug report using the repository's issue form. Include radio model, exact 
 ## License and attribution
 
 Released under the [MIT License](LICENSE). This is an independent community project, not an official ExpressLRS, EdgeTX or RadioMaster product. Protocol and documentation references, screenshot provenance and test-runtime attribution are listed in [NOTICE](NOTICE.md).
+
+## Support
+
+[Support the project on Ko-fi](https://ko-fi.com/pencilvestr).
