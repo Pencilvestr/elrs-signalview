@@ -1,4 +1,4 @@
--- ELRS SignalView 0.2.0-beta.1. Original implementation, MIT licensed.
+-- ELRS SignalView 0.2.0-beta.2. Original implementation, MIT licensed.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -371,7 +371,8 @@ local function dashboard(w,W,H)
   text(W-p,top+(wide and 83 or 64),'dBm',small+RIGHT,C.muted)
   local barY=chartTop-22
   local warning,critical,modeLabel=thresholds(w)
-  text(W-p,barY-4,modeLabel..(warning and (' '..warning..' / '..critical) or ''),small+RIGHT,C.muted)
+  -- Leave clear space below the small-font descenders and above the divider.
+  text(W-p,barY-12,modeLabel..(warning and (' '..warning..' / '..critical) or ''),small+RIGHT,C.muted)
   local barW=math.floor(W*.34)
   rect(p,barY,barW,6,C.card)
   if q.current and type(q.value)=='number' then

@@ -2,7 +2,7 @@
 
 A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Public beta: 0.2.0-beta.1.**
+**Public beta: 0.2.0-beta.2.**
 
 ![SignalView showing changing signal levels, alert colors and scrolling history](docs/images/signalview-demo.gif)
 
@@ -22,7 +22,7 @@ It works in full screen and a single near-full-screen widget area. **Use a one-w
 
 ## Install
 
-[Download the beta installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0-beta.1/elrs-signalview-0.2.0-beta.1.zip) from the [beta release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0-beta.1).
+[Download the beta installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0-beta.2/elrs-signalview-0.2.0-beta.2.zip) from the [beta release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0-beta.2).
 
 1. Back up your model and SD card.
 2. Copy `WIDGETS/SignalView` from this project into the SD card's existing `WIDGETS` directory.
@@ -61,9 +61,9 @@ This is a running list of setups reported working on physical radios. Reports de
 
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
-| RadioMaster TX16S MK3 | Internal ELRS, 4.x | Official release; exact version pending | Maintainer bench test with an active receiver connection. Stable operation reported after the CPU fix, with history scrolling and module-version display working. |
+| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer bench test with an active receiver connection. Local spacing fix tested and reported working as expected; history scrolling and module-version display previously confirmed. |
 
-The receiver model, exact firmware versions and test duration for this initial report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
+The receiver model, receiver firmware and test duration for this report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
 
 ### Simulator coverage
 

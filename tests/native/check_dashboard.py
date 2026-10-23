@@ -17,6 +17,9 @@ checks['stale_has_no_current_LQ']=count('06-stale',(24,102,300,182),(255,255,255
 im=Image.open(root/'04-connected.png').convert('RGB')
 bg=im.getpixel((0,404))
 checks['time_labels_clear_separator']=all(pixel==bg for pixel in im.crop((24,404,776,410)).getdata())
+checks['rssi_threshold_label_clear_divider']=all(
+    pixel==im.getpixel((0,204))
+    for pixel in im.crop((600,204,776,210)).getdata())
 (root/'dashboard-checks.json').write_text(json.dumps(checks,indent=2))
 print(json.dumps(checks,indent=2))
 assert all(checks.values())
