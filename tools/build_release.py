@@ -29,7 +29,7 @@ Defaults: LQ amber 80%, LQ red 60%, RSSI mode Auto, Manual RX amber/red
 -98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode is
 a text field accepting Auto, Manual or Off. Record settings before upgrades.
 
-This is a public beta candidate. Begin with a bench test, with propellers
+This is a public beta. Begin with a bench test, with propellers
 removed or the motor disconnected. See the project README for documentation,
 testing limits and feedback instructions. Module-version discovery briefly
 uses the shared CRSF Lua queue; avoid another querying widget during discovery.

@@ -53,8 +53,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.75,
-      "widget_sha256": "169ddd860b1e1060df81d1c99a1ba6483fc8bfe72c7f4f9528750ab82a391c72"
+      "elapsed_seconds": 33.66,
+      "widget_sha256": "9cda8c697463b1c5a60ad0d5ff4db9bf921ec1d60c9e41456ea1ae9de68dbe8b"
     },
     {
       "radio": "tx16s",
@@ -108,8 +108,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.73,
-      "widget_sha256": "169ddd860b1e1060df81d1c99a1ba6483fc8bfe72c7f4f9528750ab82a391c72"
+      "elapsed_seconds": 33.64,
+      "widget_sha256": "9cda8c697463b1c5a60ad0d5ff4db9bf921ec1d60c9e41456ea1ae9de68dbe8b"
     },
     {
       "radio": "tx15",
@@ -163,8 +163,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.58,
-      "widget_sha256": "169ddd860b1e1060df81d1c99a1ba6483fc8bfe72c7f4f9528750ab82a391c72"
+      "elapsed_seconds": 33.59,
+      "widget_sha256": "9cda8c697463b1c5a60ad0d5ff4db9bf921ec1d60c9e41456ea1ae9de68dbe8b"
     },
     {
       "radio": "nv14",
@@ -218,8 +218,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.59,
-      "widget_sha256": "169ddd860b1e1060df81d1c99a1ba6483fc8bfe72c7f4f9528750ab82a391c72"
+      "elapsed_seconds": 33.58,
+      "widget_sha256": "9cda8c697463b1c5a60ad0d5ff4db9bf921ec1d60c9e41456ea1ae9de68dbe8b"
     },
     {
       "radio": "pa01",
@@ -273,19 +273,10 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 34.09,
-      "widget_sha256": "169ddd860b1e1060df81d1c99a1ba6483fc8bfe72c7f4f9528750ab82a391c72"
+      "elapsed_seconds": 34.08,
+      "widget_sha256": "9cda8c697463b1c5a60ad0d5ff4db9bf921ec1d60c9e41456ea1ae9de68dbe8b"
     }
   ],
-  "method": "Official extracted EdgeTX 2.12.5 native simulator DLLs; original beta Lua; injected CRSF frames; direct RGB565 framebuffers.",
-  "limitations": [
-    "Version coverage is the installed simulator build only",
-    "Sensor definitions are preconfigured; interactive discovery is not tested",
-    "No physical RF link or radio hardware performance test",
-    "Minimal SD assets; splash/audio assets absent",
-    "Adapter uses exact-build MSVC x64 exported C++ ABI and refuses changed library hashes"
-  ],
-  "beta_version": "0.2.0-beta.1",
   "checked_date": "2026-10-22",
   "supplemental_checks": {
     "compact-footer-checks.json": {
@@ -364,7 +355,8 @@
       "warning_history": true,
       "critical_history": true,
       "stale_has_no_current_LQ": true,
-      "time_labels_clear_separator": true
+      "time_labels_clear_separator": true,
+      "rssi_threshold_label_clear_divider": true
     }
   }
 }

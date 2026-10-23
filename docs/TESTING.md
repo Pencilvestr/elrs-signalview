@@ -10,7 +10,7 @@ Physical-radio feedback and native simulation are recorded separately. A simulat
 
 The maintainer tested a TX16S MK3 with its internal ELRS 4.x module and an active connection. The original renderer failed with a CPU-limit error. After the bounded-history fix, the maintainer reported that it ran without CPU-limit issues. Subsequent feedback reported the scrolling-edge and module-version changes working correctly.
 
-Exact EdgeTX/ELRS patch versions, receiver model, test duration and flight conditions were not recorded. The public beta's picker-name change and source comments are covered by a fresh simulator run, not a separate physical install under the new name. No formal flight qualification or extended hardware endurance claim is made.
+The maintainer subsequently installed the local SignalView spacing fix and reported it working as expected on a TX16S MK3 running EdgeTX 2.12.5 and internal ELRS 4.0.0. This is the functional change included in 0.2.0-beta.2. The receiver model, receiver firmware, test duration and flight conditions have not been recorded. No formal flight qualification or extended hardware endurance claim is made.
 
 ### Native simulator
 
