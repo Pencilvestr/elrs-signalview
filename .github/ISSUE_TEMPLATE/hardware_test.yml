@@ -1,0 +1,34 @@
+name: Hardware test results
+description: Share compatibility and bench-test findings.
+title: "[Hardware] "
+body:
+  - type: input
+    id: setup
+    attributes:
+      label: Radio, receiver and exact firmware versions
+    validations:
+      required: true
+  - type: input
+    id: widget
+    attributes:
+      label: SignalView version and test duration
+    validations:
+      required: true
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Layout, RFMD, antenna fields and widget settings
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Report readings, module version, warning/recovery, stale data, history rollover, persistence and any CPU/memory errors.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Photographs or screenshots
+      description: Remove private details; do not upload personal SD-card backups.

@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a widget error, incorrect value or display problem.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: input
+    id: widget
+    attributes:
+      label: SignalView version
+      placeholder: 0.2.0-beta.1
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Radio and receiver models
+      placeholder: Include antenna configuration where known.
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Exact EdgeTX and ELRS firmware versions
+      description: Include TX and RX versions; use unknown if unavailable, rather than latest.
+    validations:
+      required: true
+  - type: textarea
+    id: configuration
+    attributes:
+      label: View, RF mode and widget settings
+      description: Full screen or single widget, top bar, RFMD, RSSI mode, thresholds, recovery delay and other Lua scripts.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected behavior and actual behavior
+      description: Include time to failure and whether the history had filled.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Complete error message and screenshots
+      description: Paste the full error, including line number. Remove binding phrases, credentials and private data.
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Test environment
+      options:
+        - Physical radio
+        - Native EdgeTX simulator
+        - Other
+    validations:
+      required: true

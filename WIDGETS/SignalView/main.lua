@@ -1,0 +1,458 @@
+-- ELRS SignalView 0.2.0-beta.1. Original implementation, MIT licensed.
+-- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
+-- query discovers the TX module version. No model or RF setting writes occur.
+-- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
+
+-- Sensor order is also the history schema: 1 = LQ, 2/3 = antenna RSSI.
+-- getTime() is in centiseconds: 20 = 200 ms, 100 = 1 s, 3000 = 30 s.
+local definitions = {
+  {"RQly", "Uplink quality", "%"},
+  {"1RSS", "RX antenna 1", "dBm"},
+  {"2RSS", "RX antenna 2", "dBm"},
+  {"RSNR", "Receiver SNR", "dB"},
+  {"RFMD", "RF mode index", "raw"},
+  {"TPWR", "TX power", "mW"},
+  {"TQly", "Downlink quality", "%"},
+  {"TRSS", "Downlink RSSI", "dBm"},
+  {"TSNR", "Downlink SNR", "dB"},
+  {"ANT", "Active antenna", "raw"}
+}
+local C = {
+  bg=lcd.RGB(20,27,25), card=lcd.RGB(43,61,49),
+  text=lcd.RGB(255,255,255), muted=lcd.RGB(167,185,173),
+  accent=lcd.RGB(112,217,154), warn=lcd.RGB(255,195,106), red=lcd.RGB(255,116,116), blue=lcd.RGB(118,186,255), rule=lcd.RGB(48,65,55)
+}
+-- Cache sensor IDs and rescan periodically so telemetry discovery can happen
+-- after widget creation. A name existing does not imply its value is current.
+local function scan(w)
+  -- Resolve discovered names without consuming the shared CRSF telemetry queue.
+  local names = {}
+  if sources then
+    for id, name in sources() do names[string.lower(name)] = id end
+  end
+  for _,s in ipairs(w.sensors) do
+    s.id = names[string.lower(s.name)]
+    if not s.id then
+      local info = getFieldInfo(s.name)
+      if info then s.id = info.id end
+    end
+  end
+  w.scanTime = getTime()
+end
+-- Rate-limit acquisition independently of screen refresh; EdgeTX scheduling
+-- may provide fewer than five calls per second. Respect firmware freshness.
+local function sample(w)
+  local now = getTime()
+  if w.sampleTime and now >= w.sampleTime and now-w.sampleTime < 20 then return end
+  w.sampleTime = now
+  if not w.scanTime or now < w.scanTime or now-w.scanTime >= 200 then scan(w) end
+  for _,s in ipairs(w.sensors) do
+    s.value, s.current, s.fresh = nil, false, false
+    s.state = "MISSING"
+    if s.id then
+      if not getSourceValue then
+        s.state = "API NEEDED"
+      else
+        s.value, s.current, s.fresh = getSourceValue(s.id)
+        if s.value == nil then s.state = "NO VALUE"
+        elseif not s.current then s.state = "STALE"
+        elseif s.fresh then s.state = "FRESH"
+        else s.state = "CURRENT" end
+      end
+    end
+  end
+end
+-- Official ExpressLRS Signal Health, ELRS 4.x RFMD table, verified 2026-10-21.
+-- Band and modulation are encoded by these 4.x indices; never use the 3.x map.
+local sensitivity={
+  [0]=-123,[1]=-120,[2]=-117,[3]=-112,[5]=-112,[6]=-111,[7]=-111,
+  [10]=-112,[11]=-101,[21]=-115,[23]=-112,[24]=-112,[27]=-108,
+  [28]=-105,[29]=-105,[30]=-104,[31]=-104,[32]=-104,[33]=-104,
+  [34]=-103,[35]=-103,[36]=-103,[100]=-112,[101]=-112
+}
+-- Return effective RSSI amber/red boundaries, or nil plus a visible reason.
+-- RFMD alone cannot identify the ELRS major version; Auto targets 4.x only.
+local function thresholds(w)
+  if w.options.RSSImode==-1 then return nil,nil,'Use Auto/Manual/Off' end
+  if w.options.RSSImode==2 then return nil,nil,'RSSI colors off' end
+  if w.options.RSSImode==1 then
+    if w.options.RSSIcrit>=w.options.RSSIwarn then return nil,nil,'RSSI settings invalid' end
+    return w.options.RSSIwarn,w.options.RSSIcrit,'RSSI manual'
+  end
+  if w.moduleMajor and w.moduleMajor~=4 then return nil,nil,'Auto needs ELRS 4.x' end
+  local s=w.sensors[5]
+  local limit=s.current and type(s.value)=='number' and sensitivity[s.value]
+  if not limit then return nil,nil,'RSSI auto unavailable' end
+  return limit+10,limit+5,'RSSI auto'
+end
+local severity
+local colorRanks={[C.text]=0,[C.warn]=1,[C.red]=2,[C.muted]=-1}
+-- Current text/bar state is independent for each series. Worsening is immediate;
+-- recovery needs both a 2-unit margin and sustained time. Raw graph colors do
+-- not pass through this state machine. Staleness/context changes reset it.
+local function smooth(w,index,color,now)
+  if w.options.Recover==0 then if w.alerts then w.alerts[index]=nil end;return color end
+  local s=w.sensors[index]
+  local warning,critical=thresholds(w)
+  local key=index==1 and (w.options.LQwarn..'/'..w.options.LQcrit) or (w.options.RSSImode..'/'..tostring(warning)..'/'..tostring(critical))
+  w.alerts=w.alerts or {}
+  local a=w.alerts[index]
+  if not a or a.key~=key or now<a.time or color==C.muted or not s.current then
+    a={key=key,color=color,time=now};w.alerts[index]=a;return color
+  end
+  a.time=now
+  local rank,old=colorRanks[color],colorRanks[a.color]
+  local upper=index==1 and w.options.LQwarn or warning
+  if rank==0 and old>0 and upper and s.value<upper+2 then color=C.warn;rank=1 end
+  if old<0 or rank>=old or w.options.Recover==0 then
+    a.color=color;a.since=nil;a.target=nil;return color
+  end
+  local boundary=index==1 and (old==2 and w.options.LQcrit or w.options.LQwarn) or (old==2 and critical or warning)
+  if not boundary or s.value<boundary+2 then a.since=nil;a.target=nil;return a.color end
+  if a.target~=color then a.target=color;a.since=now end
+  if now-a.since>=w.options.Recover*100 then a.color=color;a.since=nil;a.target=nil end
+  return a.color
+end
+-- Extend acquisition with bounded in-memory raw history and plot buckets.
+-- Never draw all raw samples: that caused the original hardware CPU-limit bug.
+local baseSample=sample
+sample=function(w)
+  local previous=w.sampleTime
+  baseSample(w)
+  if previous==w.sampleTime then return end
+  local now=w.sampleTime
+  if w.history and #w.history>0 and now<w.history[#w.history].time then w.history={} end
+  w.history=w.history or {}
+  w.sequence=(w.sequence or 0)+1
+  local point={time=now,seq=w.sequence,colors={}}
+  w.displayColors={}
+  for i=1,3 do
+    local s=w.sensors[i]
+    local color=severity(w,s,i~=1)
+    if s.current and type(s.value)=='number' then
+      point[i]=s.value
+      point.colors[i]=color
+    end
+    w.displayColors[i]=smooth(w,i,color,now)
+  end
+  w.history[#w.history+1]=point
+  while #w.history>151 or (#w.history>0 and now-w.history[1].time>3000) do table.remove(w.history,1) end
+  -- Bound drawing work independently of refresh frequency. Retain the weakest
+  -- sample per second, with its original color, so short dips remain visible.
+  if not w.plotHistory or (w.plotHistory[#w.plotHistory] and now<w.plotHistory[#w.plotHistory].time) then w.plotHistory={} end
+  local plots=w.plotHistory
+  local bucket=plots[#plots]
+  local second=math.floor(now/100)
+  if not bucket or bucket.second~=second then
+    bucket={time=now,second=second,seq=second,colors={},gap={}}
+    plots[#plots+1]=bucket
+  end
+  for i=1,3 do
+    if point[i]==nil then bucket[i]=nil;bucket.colors[i]=nil;bucket.gap[i]=true
+    elseif not bucket.gap[i] and (bucket[i]==nil or point[i]<bucket[i]) then
+      bucket[i]=point[i];bucket.colors[i]=point.colors[i]
+    end
+  end
+  -- Keep one predecessor outside the window to clip a continuous line at its
+  -- left edge, rather than dropping the entire crossing segment each second.
+  while #plots>32 or (#plots>1 and plots[2].time<=now-3000) do table.remove(plots,1) end
+end
+-- Translate public setting labels to internal keys. Copy, rather than mutate,
+-- EdgeTX's options table so widget instances cannot share accidental changes.
+-- Legacy internal keys are accepted for existing development tests/settings.
+local function defaults(options)
+  local src=options or {}
+  local o={}
+  local names={LQwarn='LQ amber',LQcrit='LQ red',RSSIwarn='RX amber',RSSIcrit='RX red',Recover='Recover s'}
+  for k,v in pairs({LQwarn=80,LQcrit=60,RSSIwarn=-98,RSSIcrit=-103,Recover=1}) do o[k]=src[names[k]] or src[k] or v end
+  local mode=src['RSSI mode']
+  if mode then o.RSSImode=({auto=0,manual=1,off=2})[string.match(string.lower(mode),'^%s*(.-)%s*$')] or -1
+  else o.RSSImode=src.RSSImode or 0 end
+  return o
+end
+-- All persistent widget state belongs to w. No history is written to the SD.
+local function create(zone, options)
+  local version, radio = getVersion()
+  local w = {zone=zone, options=defaults(options), sensors={}, version=tostring(version), radio=tostring(radio)}
+  for i,d in ipairs(definitions) do
+    w.sensors[i] = {name=d[1], label=d[2], unit=d[3]}
+  end
+  scan(w)
+  return w
+end
+-- Refresh is synchronous; reset this drawing origin for every instance/call.
+local originX,originY=0,0
+local function text(x,y,str,font,color)
+  lcd.drawText(math.floor(x+originX), math.floor(y+originY), str, (font or SMLSIZE)+(color or C.text))
+end
+local function rect(x,y,width,height,color)
+  lcd.drawFilledRectangle(math.floor(x+originX),math.floor(y+originY),math.max(1,math.floor(width)),math.max(1,math.floor(height)),color)
+end
+local function line(x1,y1,x2,y2,style,color)
+  lcd.drawLine(x1+originX,y1+originY,x2+originX,y2+originY,style,color)
+end
+local function versionHeader(w)
+  return w.moduleVersion and ('ELRS '..w.moduleVersion) or 'ELRS LINK'
+end
+-- Directed Device Ping (0x28) / Device Info (0x29), not a settings request.
+-- Check handset destination, TX origin and the ELRS serial signature before
+-- accepting software bytes. Cache only for this widget's lifetime; no disk IO.
+local function discoverVersion(w)
+  if w.moduleVersion or not crossfireTelemetryPush or not crossfireTelemetryPop then return end
+  local now=getTime()
+  w.versionStart=w.versionStart or now
+  if now<w.versionStart or now-w.versionStart>1000 then return end
+  if w.versionTick and now-w.versionTick<20 then return end
+  w.versionTick=now
+  if not w.versionPing or now-w.versionPing>=200 then
+    crossfireTelemetryPush(0x28,{0xEE,0xEA})
+    w.versionPing=now
+  end
+  -- The CRSF Lua queue is shared. Only inspect a bounded number while this
+  -- dashboard is visible, and stop entirely after success or ten seconds.
+  for i=1,2 do
+    local command,data=crossfireTelemetryPop()
+    if not command then break end
+    if command==0x29 and type(data)=='table' and data[1]==0xEA and data[2]==0xEE then
+      local zero
+      for j=3,math.min(#data,35) do if data[j]==0 then zero=j;break end end
+      if zero and #data>=zero+14 and data[zero+1]==69 and data[zero+2]==76 and data[zero+3]==82 and data[zero+4]==83 then
+        local major,minor,patch=data[zero+10],data[zero+11],data[zero+12]
+        if major and major>=3 and major<255 and minor and patch then
+          w.moduleMajor=major
+          w.moduleVersion=(minor==255 or patch==255) and (major..'.x dev') or (major..'.'..minor..'.'..patch)
+          return
+        end
+      end
+    end
+  end
+end
+local function value(s)
+  if not s.current or type(s.value) ~= "number" then return "--" end
+  return string.format("%.0f",s.value)
+end
+local function status(w)
+  if not getSourceValue then return "getSourceValue API required", C.warn end
+  local s=w.sensors[1]
+  if s.current and type(s.value)=="number" then return "UPLINK DATA CURRENT", C.accent end
+  if not s.id then return "RQly SENSOR NOT FOUND", C.warn end
+  return "NO CURRENT UPLINK DATA", C.warn
+end
+-- Freeze each sample's color when recorded, including unavailable auto state.
+severity=function(w,s,rssi)
+  if not s.current or type(s.value)~='number' then return C.muted end
+  if rssi then
+    local warning,critical=thresholds(w)
+    if not warning then return w.options.RSSImode==2 and C.text or C.muted end
+    if s.value<=critical then return C.red end
+    if s.value<=warning then return C.warn end
+  else
+    if w.options.LQcrit>=w.options.LQwarn then return C.muted end
+    if s.value<w.options.LQcrit then return C.red end
+    if s.value<w.options.LQwarn then return C.warn end
+  end
+  return C.text
+end
+local function displayColor(w,index)
+  return w.displayColors and w.displayColors[index] or C.muted
+end
+-- Compact landscape and portrait share the approved information hierarchy.
+-- Every plot uses one predecessor outside the window for left-edge clipping.
+local function compactDashboard(w,W,H)
+  local p=8
+  local left=42
+  local right=W-p-2
+  local portrait=H>W
+  local mid=math.floor(W/2)+4
+  local top=32
+  local chartTop=portrait and 126 or 108
+  local footer=H-36
+  local timeY=footer-20
+  local graphBottom=timeY-6
+  local panelH=math.floor((graphBottom-chartTop)/2)
+  local q=w.sensors[1]
+  text(p,6,versionHeader(w),SMLSIZE)
+  text(W-p,6,w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry'),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
+  rect(p,24,W-p*2,1,C.text)
+  text(p,top,'Link Quality',SMLSIZE,C.muted)
+  text(mid,top,'Receiver Signal',SMLSIZE,C.muted)
+  text(p,top+17,value(q)..'%',DBLSIZE,displayColor(w,1))
+  local two=w.sensors[3].current and type(w.sensors[3].value)=='number'
+  local aw=(W-mid-p)/(two and 2 or 1)
+  for a=1,two and 2 or 1 do
+    local x=mid+(a-1)*aw
+    text(x,top+20,value(w.sensors[a+1]),MIDSIZE,displayColor(w,a+1))
+    text(x,top+43,'ANT '..a,SMLSIZE,C.muted)
+  end
+  text(W-p,top+43,'dBm',SMLSIZE+RIGHT,C.muted)
+  local warning,critical,mode=thresholds(w)
+  local modeText=warning and ((w.options.RSSImode==0 and 'Auto ' or 'Manual ')..warning..'/'..critical) or mode
+  text(W-p,portrait and 100 or 89,modeText,SMLSIZE+RIGHT,C.muted)
+  local by=portrait and 103 or 92
+  local bw=math.floor(W*.32)
+  rect(p,by,bw,5,C.card)
+  if q.current and type(q.value)=='number' then
+    local color=displayColor(w,1)
+    rect(p,by,bw*math.max(0,math.min(100,q.value))/100,5,color==C.text and C.accent or color)
+  end
+  for panel=1,2 do
+    local ytop=chartTop+(panel-1)*panelH
+    text(left,ytop,panel==1 and 'ANT1 / ANT2 dashed - dBm' or 'Link Quality - %',SMLSIZE,C.muted)
+    local y0=ytop+17
+    local bottom=ytop+panelH-4
+    local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
+    for n=0,1 do
+      local yy=n==0 and y0 or bottom
+      rect(left,yy,right-left,1,C.rule)
+      text(left-4,yy-6,tostring(n==0 and high or low),SMLSIZE+RIGHT,C.muted)
+    end
+    for antenna=1,panel==1 and 2 or 1 do
+      local px,py
+      local now=getTime()
+      for _,point in ipairs(w.plotHistory or {}) do
+        local index=panel==1 and antenna+1 or 1
+        local v=point[index]
+        local x=left+(point.time-(now-3000))/3000*(right-left)
+        if v and x<=right then
+          local yy=y0+(high-math.max(low,math.min(high,v)))/(high-low)*(bottom-y0)
+          if px and x>=left then
+            if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
+            local color=point.colors[index]
+            if color==C.text then color=panel==1 and C.accent or C.blue end
+            if antenna==1 then line(math.floor(px),math.floor(py),math.floor(x),math.floor(yy),SOLID,color)
+            else line(math.floor(px),math.floor(py),math.floor((px+x)/2),math.floor((py+yy)/2),SOLID,color) end
+          end
+          px,py=x,yy
+        else px,py=nil,nil end
+      end
+    end
+  end
+  text(left,timeY,'-30 s',SMLSIZE,C.muted)
+  text((left+right)/2,timeY,'-15 s',SMLSIZE,C.muted)
+  text(right,timeY,'Now',SMLSIZE+RIGHT,C.muted)
+  rect(p,footer-3,W-p*2,1,C.text)
+  local labels={'TX mW','RF Mode','SNR dB','DL %'}
+  local indices={6,5,4,7}
+  for i,id in ipairs(indices) do
+    local x=p+(i-0.5)*(W-p*2)/4
+    text(x,footer+2,labels[i],SMLSIZE+CENTER,C.muted)
+    text(x,footer+17,value(w.sensors[id]),SMLSIZE+CENTER)
+  end
+end
+
+-- Large-screen renderer. Keep layout changes separate from telemetry logic.
+local function dashboard(w,W,H)
+  if W<600 then compactDashboard(w,W,H);return end
+  local p=W>=600 and 24 or 8
+  local wide=W>=600
+  local big=wide and XXLSIZE or DBLSIZE
+  local medium=wide and DBLSIZE or MIDSIZE
+  local small=SMLSIZE
+  local top=wide and 74 or 45
+  local chartTop=wide and 218 or 140
+  local footer=H-(wide and 64 or 48)
+  local mid=math.floor(W/2)+p/2
+  text(p,12,versionHeader(w),wide and MIDSIZE or small)
+  local current=w.sensors[1].current
+  text(W-p,16,w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (current and 'Telemetry current' or 'No current telemetry'),small+RIGHT,current and C.accent or C.warn)
+  rect(p,wide and 53 or 37,W-2*p,2,C.text)
+  text(p,top,'Link Quality',small,C.muted)
+  text(mid,top,'Receiver Signal',small,C.muted)
+  local q=w.sensors[1]
+  text(p,top+22,value(q)..'%',big,displayColor(w,1))
+  local two=w.sensors[3].current and type(w.sensors[3].value)=='number'
+  local antWidth=(W-mid-p)/(two and 2 or 1)
+  for a=1,two and 2 or 1 do
+    local s=w.sensors[a+1]
+    local x=mid+(a-1)*antWidth
+    text(x,top+30,value(s),medium,displayColor(w,a+1))
+    text(x,top+(wide and 83 or 64),'ANT '..a,small,C.muted)
+  end
+  text(W-p,top+(wide and 83 or 64),'dBm',small+RIGHT,C.muted)
+  local barY=chartTop-22
+  local warning,critical,modeLabel=thresholds(w)
+  text(W-p,barY-4,modeLabel..(warning and (' '..warning..' / '..critical) or ''),small+RIGHT,C.muted)
+  local barW=math.floor(W*.34)
+  rect(p,barY,barW,6,C.card)
+  if q.current and type(q.value)=='number' then
+    local color=displayColor(w,1)
+    rect(p,barY,barW*math.max(0,math.min(100,q.value))/100,6,color==C.text and C.accent or color)
+  end
+  rect(p,chartTop-8,W-2*p,1,C.rule)
+  local plotH=math.max(25,math.floor((footer-chartTop-48)/2))
+  local left=p+36
+  local right=W-p-3
+  for panel=1,2 do
+    local ytop=chartTop+(panel-1)*(plotH+18)
+    text(p,ytop,panel==1 and 'ANT 1 solid / ANT 2 dashed - dBm' or 'Link Quality - %',small,C.muted)
+    local y0=ytop+28
+    local h=plotH-38
+    local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
+    for n=0,2 do
+      local yy=y0+n*h/2
+      rect(left,yy,right-left,1,C.rule)
+      text(left-4,yy-7,string.format('%.0f',high-n*(high-low)/2),small+RIGHT,C.muted)
+    end
+    local now=getTime()
+    for antenna=1,panel==1 and 2 or 1 do
+      local px,py
+      for _,point in ipairs(w.plotHistory or {}) do
+        local v=panel==1 and point[antenna+1] or point[1]
+        local x=left+(point.time-(now-3000))/3000*(right-left)
+        if v and x<=right then
+          local yy=y0+(high-math.max(low,math.min(high,v)))/(high-low)*h
+          if px and x>=left then
+            if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
+            local color=point.colors[panel==1 and antenna+1 or 1]
+            if color==C.text then color=panel==1 and C.accent or C.blue end
+            if antenna==1 then line(math.floor(px),math.floor(py),math.floor(x),math.floor(yy),SOLID,color)
+            else line(math.floor(px),math.floor(py),math.floor((px+x)/2),math.floor((py+yy)/2),SOLID,color) end
+          end
+          px,py=x,yy
+        else px,py=nil,nil end
+      end
+    end
+  end
+  text(left,footer-33,'-30 s',small,C.muted)
+  text((left+right)/2,footer-33,'-15 s',small,C.muted)
+  text(right,footer-33,'Now',small+RIGHT,C.muted)
+  rect(p,footer-5,W-2*p,2,C.text)
+  local indices={6,5,4,7}
+  local labels={'TX POWER','RF MODE','RX SNR','DOWNLINK'}
+  for i,id in ipairs(indices) do
+    local x=p+(i-0.5)*(W-2*p)/4
+    text(x,footer+3,labels[i],small+CENTER,C.muted)
+    local s=w.sensors[id]
+    text(x,footer+23,value(s)..(i==1 and ' mW' or i==3 and ' dB' or i==4 and '%' or ''),(wide and MIDSIZE or small)+CENTER)
+  end
+end
+
+-- EdgeTX supplies events only in full screen. Normal areas must be almost the
+-- whole screen: small/multi-widget zones stay blank, with no prompt or preview.
+local function refresh(w,event,touch)
+  sample(w)
+  local full = event ~= nil
+  local z = full and {x=0,y=0,w=LCD_W,h=LCD_H} or w.zone
+  originX,originY=z.x,z.y
+  rect(0,0,z.w,z.h,C.bg)
+  local large=z.w>=LCD_W*0.95 and z.h>=LCD_H*0.95 and z.w>=300 and z.h>=240
+  if not full and not large then return end
+  discoverVersion(w)
+  if EVT_VIRTUAL_EXIT and event == EVT_VIRTUAL_EXIT and lcd.exitFullScreen then
+    lcd.exitFullScreen()
+    return
+  end
+  dashboard(w,z.w,z.h)
+end
+return {
+  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10}}, create=create,
+  update=function(w,options) w.options=defaults(options); w.scanTime=nil end,
+  refresh=refresh, background=sample
+}
+
+
+
+
+
+
+

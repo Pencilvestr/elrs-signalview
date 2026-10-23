@@ -1,0 +1,19 @@
+# Generated packages, runtimes, simulator storage and logs
+dist/
+.runtime/
+.cache/
+tests/native/results/
+tests/native/large-zone-probe/
+tests/native/settings-persistence/
+tests/native/endurance/
+*.log
+*.luac
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+Thumbs.db
+.DS_Store

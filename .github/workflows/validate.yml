@@ -1,0 +1,29 @@
+name: Validate project
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install Lua syntax checker
+        run: sudo apt-get update && sudo apt-get install -y lua5.3
+      - name: Check Lua syntax
+        run: luac5.3 -p WIDGETS/SignalView/main.lua
+      - name: Validate links, assets and repository structure
+        run: python tools/check_project.py
+      - name: Build and verify install package
+        run: python tools/build_release.py

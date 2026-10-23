@@ -1,0 +1,20 @@
+{
+  "library_directory": ".runtime/edgetx-2.12.5/bin",
+  "abi": "MSVC x64, Qt6, exported OpenTxSimulator methods",
+  "firmware_expected": "2.12.5",
+  "source_url": "https://github.com/EdgeTX/edgetx/releases/download/v2.12.5/edgetx-cpn-win64-v2.12.5.zip",
+  "archive_sha256": "0f8ff717b7eb88dcaed6d6f78a91a2294c0550f4b0f99741996ee7161917df5e",
+  "sha256": {
+    "libedgetx-nv14-simulator.dll": "da1c2beee6fdf0f94b5ac1caf67d7792a83c217fac08c9803c31969a99990658",
+    "libedgetx-pa01-simulator.dll": "f2eda0b58cbe31fa6c10ef5014d0e64333612e1febcf13c8f9d1b253a4ff369b",
+    "libedgetx-tx15-simulator.dll": "2a9cc13f61dacb24fab6f4412ffb31abbe23dceff1ebc1e53c5e6ffaf2183fac",
+    "libedgetx-tx16s-simulator.dll": "8d47022e2f58bec21d562f9d45d790e2062796728ca9a9a89101ef4b1cfff1b9",
+    "libedgetx-tx16smk3-simulator.dll": "2bf08274dc7ed2021fe36022717a4aa5f9634086fbf44adafa70423a194a7d19",
+    "Qt6Core.dll": "b6c6bedca4e798f9a6cfae20946688ab0a0c3dbd7de605951b0ffb7b679e4f53",
+    "Qt6Gui.dll": "569f50c8fde5e3841197e4f44bc4673b330e2f8744391f36f0dccc17fc858f03",
+    "Qt6Multimedia.dll": "65d136af4e5f64a3e5b6ba2136df6d2aa12dd8b39b7143514bebc34f33cba007",
+    "Qt6Network.dll": "dcd4d0951de4f8a7d8609dd2f44cb32cc7fd507c7562b635346df2de6707374b",
+    "Qt6Widgets.dll": "36cfd5321d60623047f51bc9ce34333e1d090aca7a23b45e6c8a79f92d6a1aa6",
+    "SDL2.dll": "490fd069834f308c7ec168f0c29de8d20e1b4914e14de690414874a8697296fb"
+  }
+}
