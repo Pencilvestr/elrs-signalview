@@ -12,8 +12,33 @@ Open **Widget Settings** for SignalView. EdgeTX stores these settings per widget
 | RX amber | -98 | -130 to -1 dBm | Manual amber boundary; inclusive |
 | RX red | -103 | -130 to -1 dBm | Manual red boundary; inclusive |
 | Recover s | 1 | 0–10 seconds | Sustained-improvement time for current readings/bar |
+| Footer 1 | None → TPWR | Native source picker | Left footer reading |
+| Footer 2 | None → RFMD | Native source picker | Second footer reading |
+| Footer 3 | None → RSNR | Native source picker | Third footer reading |
+| Footer 4 | None → TQly | Native source picker | Right footer reading |
 
 The RSSI mode field is text, not a custom dropdown. The documented EdgeTX widget option API does not expose an arbitrary named-choice list.
+
+## Selectable ELRS footer
+
+`Footer 1` through `Footer 4` select the bottom values from left to right. Each uses EdgeTX's built-in source picker: choose a discovered telemetry sensor from the normal source list. No sensor codes need to be typed. The list includes non-ELRS sources, but this widget renders only the supported ELRS fields below.
+
+| Sensor | Displayed value | Units |
+| --- | --- | --- |
+| `TPWR` | Transmit power | mW |
+| `RFMD` | RF-mode index | raw index |
+| `RSNR` | Receiver SNR | dB |
+| `TQly` | Downlink quality | % |
+| `TRSS` | Downlink RSSI | dBm |
+| `TSNR` | Downlink SNR | dB |
+| `ANT` | Active antenna | EdgeTX-reported antenna number |
+| `RQly` | Link Quality | % |
+| `1RSS` | Receiver antenna 1 RSSI | dBm |
+| `2RSS` | Receiver antenna 2 RSSI | dBm |
+
+An unset/None selection retains that position's original default: TX power, RF mode, receiver SNR, downlink quality. Positions are independent and may repeat a sensor. Labels and units follow the selection; compact screens put units in the heading. Readings retain their white appearance and centered positions. Missing/stale telemetry displays `--`; other selected sources display `UNSUPPORTED` (`Unsup.` on compact screens) and `--`. Choose the current reading rather than a sensor's minimum/maximum variant. Sensor recognition uses the standard discovered ELRS names; renamed sensors may not be recognized.
+
+After installing, restart the radio. When upgrading, record your thresholds and recovery setting, remove and re-add SignalView, then restore them and select the footer sources. This initializes the added SOURCE settings and replaces any text types retained from the earlier local preview.
 
 ## Link Quality
 

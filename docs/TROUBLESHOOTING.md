@@ -32,3 +32,7 @@ The current renderer bounds graph work to 32 buckets per trace; do not replace i
 ## Reporting a problem
 
 Use the bug-report form. Include only relevant logs/screenshots with identifying data removed. Binding phrases, tokens and complete personal SD-card contents are not needed. If a proposed fix changes the layout or information hierarchy, include before/after screenshots for review.
+
+## Reported lag
+
+Slight lag was reported on an MK3 with the selectable-footer build. The cause is unmeasured; optimization is planned. Include where the lag occurs, its approximate duration, selected footer sensors and other running widgets when reporting it.

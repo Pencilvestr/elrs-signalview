@@ -25,6 +25,10 @@ Use one widget with the top bar OFF, or open full screen. Small areas stay blank
 Migrating from ELRS Diag: remove the old instance, add SignalView, and re-enter
 any custom settings. The product name and install directory have changed.
 
+Upgrading: record settings, restart, remove and re-add SignalView, then restore
+thresholds and select Footer 1-4 using the native source picker. Select current
+ELRS sensor readings, not their min/max variants. None uses the original default.
+
 Defaults: LQ amber 80%, LQ red 60%, RSSI mode Auto, Manual RX amber/red
 -98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode is
 a text field accepting Auto, Manual or Off. Record settings before upgrades.

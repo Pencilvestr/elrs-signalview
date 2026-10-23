@@ -63,3 +63,7 @@ Warning colors can be exercised using temporary Manual thresholds at the bench; 
 ## Rollback
 
 Restore the previous `main.lua`, restart, and restore its recorded widget settings if the schema changed. To uninstall, remove the widget instance from the model before removing its directory. This widget does not modify RF settings or install anything on the receiver.
+
+## Beta.3 footer settings
+
+Record existing settings before upgrading. Restart and re-add SignalView, restore thresholds, then select Footer 1–4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.

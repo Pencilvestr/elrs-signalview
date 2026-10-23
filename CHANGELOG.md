@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-beta.3 — 2026-10-23
+
+- Select each footer reading with EdgeTX's native source picker.
+- Support ten ELRS link sensors; preserve existing default readings and layout.
+- Show unsupported selections and unavailable telemetry clearly.
+- Add source-selection, saved-settings and rendering tests.
+- Record successful MK3 testing with slight lag reported. Performance work is deferred.
+
 ## 0.2.0-beta.2 — 2026-10-22
 
 - Move the large-screen RSSI Auto/Manual threshold label up eight pixels to clear the divider, preserving all other layout positions.

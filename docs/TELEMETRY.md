@@ -15,15 +15,15 @@ Names are resolved case-insensitively and IDs are cached. Lookup first uses `sou
 | RFMD | RF-mode index | Raw numeric footer and Auto threshold lookup |
 | TPWR | TX power reported by EdgeTX, mW | Footer |
 | TQly | Downlink quality, % | Footer |
-| TRSS | Downlink RSSI, dBm | Acquired internally; not displayed |
-| TSNR | Downlink SNR, dB | Acquired internally; not displayed |
-| ANT | Active antenna index | Acquired internally; not displayed |
+| TRSS | Downlink RSSI, dBm | Selectable footer reading |
+| TSNR | Downlink SNR, dB | Selectable footer reading |
+| ANT | Active antenna index | Selectable footer reading |
 
-The footer is centered in four columns. Compact layouts abbreviate it as TX mW, RF Mode, SNR dB and DL %. The main label is Link Quality even though CRSF's source name is RQly.
+All ten listed fields can be selected in the footer. Its four columns remain centered. Compact layouts abbreviate it as TX mW, RF Mode, SNR dB and DL %. The main label is Link Quality even though CRSF's source name is RQly.
 
 ## Antennas
 
-The second reading appears when `2RSS` is numeric and current. That is telemetry availability, not hardware identification: a second sensor field alone cannot prove that a receiver has two independently measured physical antennas. SignalView does not infer which antenna is active from the strongest number and does not display an active-antenna indicator.
+The second reading appears when `2RSS` is numeric and current. That is telemetry availability, not hardware identification: a second sensor field alone cannot prove that a receiver has two independently measured physical antennas. SignalView does not infer which antenna is active from the strongest number and does not highlight an antenna automatically. Select ANT in the footer to show the antenna number reported by EdgeTX.
 
 ## History
 

@@ -5,7 +5,7 @@ dedicated subprocess; native C++ ABI bindings are guarded by a SHA-256 manifest.
 """
 from pathlib import Path
 import ctypes as C
-import os, sys, time, json, hashlib, argparse, shutil
+import os, sys, time, json, hashlib, argparse, shutil, re
 from PIL import Image
 
 HERE=Path(__file__).resolve().parent
@@ -23,6 +23,9 @@ def main():
     parser.add_argument('--soak-seconds',type=int,default=0)
     parser.add_argument('--zone-probe',action='store_true')
     parser.add_argument('--demo',action='store_true',help='Capture a continuous documentation animation')
+    parser.add_argument('--footer',nargs=4,metavar='ELRS_SOURCE',help='Set four ELRS footer sources')
+    parser.add_argument('--source-picker-probe',action='store_true',help='Open first MK3 footer source picker in settings')
+    parser.add_argument('--picker-select-power',action='store_true',help='Select visible TPWR in the MK3 picker probe')
     args=parser.parse_args()
     width,height=RADIOS[args.radio]
     run=Path(args.run_dir).resolve()
@@ -40,11 +43,20 @@ def main():
         model=settings/'MODELS/model1.yml'
         content=model.read_text()
         vals=[86,55,'Manual',-96,-101,2] if args.settings_probe else [80,60,'Auto',-98,-103,1]
+        footer=args.footer or ['NONE']*4
+        telemetry=content.split('telemetrySensors:',1)[1]
+        sensor_slots={name:int(slot) for slot,name in re.findall(
+            r'(?ms)^   (\d+):\s*\n(?:(?!^   \d+:).)*?^      label: "([^"]+)"',telemetry)}
+        vals+=footer
         entries=''
         for i,v in enumerate(vals):
-            typ='String' if isinstance(v,str) else 'Signed'
-            field='stringValue' if isinstance(v,str) else 'signedValue'
-            val='"'+v+'"' if isinstance(v,str) else str(v)
+            if i>=6:
+                typ='Source';field='source'
+                val=f'tele({sensor_slots[v]})' if v in sensor_slots else v
+            else:
+                typ='String' if isinstance(v,str) else 'Signed'
+                field='stringValue' if isinstance(v,str) else 'signedValue'
+                val='"'+v+'"' if isinstance(v,str) else str(v)
             entries+=f'                     {i}:\n                        type: {typ}\n                        value:\n                           {field}: {val}\n'
         content=content.replace('               widgetData: \n','               widgetData: \n                  options:\n'+entries,1)
         model.write_text(content)
@@ -56,6 +68,7 @@ def main():
     shutil.copyfile(HERE/'instrument.lua',lab/'main.lua')
     shutil.copyfile(HERE/'threshold-tests.lua',lab/'threshold-tests.lua')
     shutil.copyfile(HERE/'smoothing-tests.lua',lab/'smoothing-tests.lua')
+    shutil.copyfile(HERE/'footer-tests.lua',lab/'footer-tests.lua')
     os.add_dll_directory(str(bindir))
     core=C.CDLL(str(bindir/'Qt6Core.dll'))
     sim=C.CDLL(str(bindir/f'libedgetx-{args.radio}-simulator.dll'))
@@ -137,6 +150,13 @@ def main():
             tap(width/2,height/2,1.1)
             tap(width/2,height/2+42)
             capture('settings-reopened' if args.reuse_settings else 'settings-saved')
+            if args.source_picker_probe:
+                assert args.radio=='tx16smk3','Picker coordinates target the MK3'
+                tap(455,415)
+                capture('footer-source-picker')
+                if args.picker_select_power:
+                    tap(455,285)
+                    capture('footer-picker-changed')
             fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
             sys.stdout.flush();sys.stderr.flush();os._exit(0)
         capture('01-no-data-preview')
