@@ -1,5 +1,6 @@
 """Build the README GIF from continuous native --demo captures (requires Pillow)."""
 from pathlib import Path
+from datetime import date
 import hashlib
 import json
 from PIL import Image
@@ -32,7 +33,7 @@ def main():
         'file': target.name, 'size': [800, 480], 'frames': 96,
         'duration_ms': 24000, 'sha256': hashlib.sha256(target.read_bytes()).hexdigest(),
         'origin': 'Continuous native MK3 simulator --demo capture; shared GIF palette',
-        'captured_date': '2026-10-22',
+        'captured_date': date.today().isoformat(),
         'source_sha256': hashlib.sha256((ROOT / 'WIDGETS/SignalView/main.lua').read_bytes()).hexdigest(),
         'synthetic_telemetry': True, 'synthetic_module_version': True})
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')

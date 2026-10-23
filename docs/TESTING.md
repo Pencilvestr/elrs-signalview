@@ -10,7 +10,7 @@ Physical-radio feedback and native simulation are recorded separately. A simulat
 
 The maintainer tested a TX16S MK3 with its internal ELRS 4.x module and an active connection. The original renderer failed with a CPU-limit error. After the bounded-history fix, the maintainer reported that it ran without CPU-limit issues. Subsequent feedback reported the scrolling-edge and module-version changes working correctly.
 
-The maintainer subsequently installed the local SignalView spacing fix and reported it working as expected on a TX16S MK3 running EdgeTX 2.12.5 and internal ELRS 4.0.0. This is the functional change included in 0.2.0-beta.2. The receiver model, receiver firmware, test duration and flight conditions have not been recorded. No formal flight qualification or extended hardware endurance claim is made.
+The maintainer subsequently installed the local SignalView spacing fix and reported it working as expected on a TX16S MK3 running EdgeTX 2.12.5 and internal ELRS 4.0.0. This is the functional change included in 0.2.0-beta.2. The native-source-picker footer was subsequently tested on the same MK3 setup and reported working, with slight lag. This report is included in beta.3; the cause of lag has not been measured. The receiver model, receiver firmware, test duration and flight conditions have not been recorded. No formal flight qualification or extended hardware endurance claim is made.
 
 ### Native simulator
 
@@ -18,7 +18,7 @@ The suite uses official EdgeTX 2.12.5 Windows simulator libraries for TX16S MK3 
 
 The prepared beta's machine-readable [verification record](verification.json) includes the exact widget SHA-256, target results and supplemental image checks. It is a local verification record, not a GitHub Actions run.
 
-Checks cover source integrity, loading, full-screen entry/exit, normal view, current/changed/stale/recovered telemetry, warning states, simulated Device Info version decoding, nineteen threshold scenarios and thirteen smoothing/settings scenarios. Additional pixel checks cover footer centering, warning colors, time-label clearance and a full-history trace reaching the left edge.
+Checks cover source integrity, loading, full-screen entry/exit, normal view, current/changed/stale/recovered telemetry, warning states, simulated Device Info version decoding, nineteen threshold scenarios, thirteen smoothing/settings scenarios and fourteen footer scenarios per target. Footer cases cover all ten ELRS fields, labels/units, unsupported sources, defaults and unavailable data. A separate MK3 test opens the native source picker, selects TPWR and verifies that it survives a restart. Additional pixel checks cover footer centering, warning colors, time-label clearance and a full-history trace reaching the left edge.
 
 The early extended MK3 run reproduced the old CPU-limit failure. A corrected development build completed a 120-second continuous telemetry soak followed by timeout, recovery and exit. A later normal-widget run exceeded a full 30-second window with bounded plot counts and no CPU error. These historical runs are useful evidence, not a substitute for rerunning endurance tests after functional changes.
 

@@ -50,7 +50,13 @@ NV14, 320 × 480:
 
 ![Native EdgeTX settings editor with non-default persistence-test values](images/settings.png)
 
-The settings editor image is from the test observer and shows its temporary `LabTest` title, non-default thresholds and a two-second recovery setting. The production picker name is SignalView; the defaults are documented in [Settings](SETTINGS.md). This is an earlier settings-persistence capture, not the current normal dashboard.
+The settings editor image is from the test observer and shows its temporary `LabTest` title, non-default thresholds and a two-second recovery setting. The production picker name is SignalView; the defaults are documented in [Settings](SETTINGS.md). The Footer 1 field uses the native source picker.
+
+## Footer source picker
+
+![Native EdgeTX source picker](images/footer-source-picker.png)
+
+The picker lists radio sources and discovered telemetry. Choose a supported ELRS sensor without a minimum/maximum suffix. The temporary LabTest title belongs to the test observer.
 
 ## Updating screenshots
 

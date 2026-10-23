@@ -1,4 +1,4 @@
--- ELRS SignalView 0.2.0-beta.2. Original implementation, MIT licensed.
+-- ELRS SignalView 0.2.0-beta.3. Original implementation, MIT licensed.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -17,6 +17,33 @@ local definitions = {
   {"TSNR", "Downlink SNR", "dB"},
   {"ANT", "Active antenna", "raw"}
 }
+-- SOURCE options use EdgeTX's native picker; only these ELRS fields render.
+-- Each descriptor contains sensor index, large label, compact label and units.
+local footerFields={
+  TPWR={6,'TX POWER','TX mW',' mW'}, RFMD={5,'RF MODE','RF Mode',''},
+  RSNR={4,'RX SNR','SNR dB',' dB'}, TQLY={7,'DOWNLINK','DL %','%'},
+  TRSS={8,'DL RSSI','DL dBm',' dBm'}, TSNR={9,'DL SNR','DL dB',' dB'},
+  ANT={10,'ACTIVE ANT','ANT',''}, RQLY={1,'LINK QUALITY','LQ %','%'},
+  ['1RSS']={2,'RX RSSI 1','RX1 dBm',' dBm'}, ['2RSS']={3,'RX RSSI 2','RX2 dBm',' dBm'}
+}
+local footerDefaults={'TPWR','RFMD','RSNR','TQLY'}
+local invalidFooter={0,'UNSUPPORTED','Unsup.',''}
+local function resolveFooter(w)
+  for i,key in ipairs(footerDefaults) do
+    local selected=w.options.footerSources[i]
+    local field=footerFields[key]
+    if type(selected)=='number' and selected~=0 then
+      field=invalidFooter
+      for name,candidate in pairs(footerFields) do
+        if w.sensors[candidate[1]].id==selected then field=candidate;break end
+      end
+    elseif type(selected)=='string' and selected~='' then
+      -- Accept the previous unpublished text-field build during migration.
+      field=footerFields[string.upper(selected)] or invalidFooter
+    end
+    w.options.footer[i]=field
+  end
+end
 local C = {
   bg=lcd.RGB(20,27,25), card=lcd.RGB(43,61,49),
   text=lcd.RGB(255,255,255), muted=lcd.RGB(167,185,173),
@@ -37,6 +64,7 @@ local function scan(w)
       if info then s.id = info.id end
     end
   end
+  resolveFooter(w)
   w.scanTime = getTime()
 end
 -- Rate-limit acquisition independently of screen refresh; EdgeTX scheduling
@@ -168,6 +196,16 @@ local function defaults(options)
   local mode=src['RSSI mode']
   if mode then o.RSSImode=({auto=0,manual=1,off=2})[string.match(string.lower(mode),'^%s*(.-)%s*$')] or -1
   else o.RSSImode=src.RSSImode or 0 end
+  o.footer={};o.footerSources={}
+  for i,key in ipairs(footerDefaults) do
+    local setting=src['Footer '..i]
+    if type(setting)=='string' then
+      setting=string.match(string.upper(setting),'^%s*(.-)%s*$')
+      if setting~='' then key=setting end
+    end
+    o.footerSources[i]=setting
+    o.footer[i]=footerFields[key] or invalidFooter
+  end
   return o
 end
 -- All persistent widget state belongs to w. No history is written to the SD.
@@ -331,12 +369,10 @@ local function compactDashboard(w,W,H)
   text((left+right)/2,timeY,'-15 s',SMLSIZE,C.muted)
   text(right,timeY,'Now',SMLSIZE+RIGHT,C.muted)
   rect(p,footer-3,W-p*2,1,C.text)
-  local labels={'TX mW','RF Mode','SNR dB','DL %'}
-  local indices={6,5,4,7}
-  for i,id in ipairs(indices) do
+  for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-p*2)/4
-    text(x,footer+2,labels[i],SMLSIZE+CENTER,C.muted)
-    text(x,footer+17,value(w.sensors[id]),SMLSIZE+CENTER)
+    text(x,footer+2,field[3],SMLSIZE+CENTER,C.muted)
+    text(x,footer+17,field[1]>0 and value(w.sensors[field[1]]) or '--',SMLSIZE+CENTER)
   end
 end
 
@@ -418,13 +454,11 @@ local function dashboard(w,W,H)
   text((left+right)/2,footer-33,'-15 s',small,C.muted)
   text(right,footer-33,'Now',small+RIGHT,C.muted)
   rect(p,footer-5,W-2*p,2,C.text)
-  local indices={6,5,4,7}
-  local labels={'TX POWER','RF MODE','RX SNR','DOWNLINK'}
-  for i,id in ipairs(indices) do
+  for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-2*p)/4
-    text(x,footer+3,labels[i],small+CENTER,C.muted)
-    local s=w.sensors[id]
-    text(x,footer+23,value(s)..(i==1 and ' mW' or i==3 and ' dB' or i==4 and '%' or ''),(wide and MIDSIZE or small)+CENTER)
+    text(x,footer+3,field[2],small+CENTER,C.muted)
+    local shown=field[1]>0 and value(w.sensors[field[1]]) or '--'
+    text(x,footer+23,shown..field[4],(wide and MIDSIZE or small)+CENTER)
   end
 end
 
@@ -446,8 +480,8 @@ local function refresh(w,event,touch)
   dashboard(w,z.w,z.h)
 end
 return {
-  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10}}, create=create,
-  update=function(w,options) w.options=defaults(options); w.scanTime=nil end,
+  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0}}, create=create,
+  update=function(w,options) w.options=defaults(options);scan(w) end,
   refresh=refresh, background=sample
 }
 

@@ -17,3 +17,6 @@ venv/
 !.env.example
 Thumbs.db
 .DS_Store
+
+# Local handoff notes
+LOCAL-TESTING.md

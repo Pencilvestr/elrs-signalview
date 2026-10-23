@@ -2,7 +2,7 @@
 
 A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Public beta: 0.2.0-beta.2.**
+**Public beta: 0.2.0-beta.3.**
 
 ![SignalView showing changing signal levels, alert colors and scrolling history](docs/images/signalview-demo.gif)
 
@@ -15,14 +15,14 @@ A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS 
 - White, amber and red current readings; green normal RSSI history and blue normal LQ history.
 - Immediate worsening indications and configurable delayed recovery.
 - Automatic RSSI thresholds from the verified ELRS 4.x RF-mode table, or manual thresholds.
-- Transmit power, raw RF-mode index, receiver SNR and downlink quality.
+- Four selectable ELRS footer readings using EdgeTX's source picker. Defaults: TX power, RF mode, receiver SNR and downlink quality.
 - The transmitter module's reported firmware version when discovery succeeds.
 
 It works in full screen and a single near-full-screen widget area. **Use a one-widget layout with the EdgeTX top bar off.** Small widget areas intentionally stay blank. There are no miniature dashboards, prompts, voice alarms, flight logging or RF-setting controls.
 
 ## Install
 
-[Download the beta installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0-beta.2/elrs-signalview-0.2.0-beta.2.zip) from the [beta release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0-beta.2).
+[Download the beta installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0-beta.3/elrs-signalview-0.2.0-beta.3.zip) from the [beta release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0-beta.3).
 
 1. Back up your model and SD card.
 2. Copy `WIDGETS/SignalView` from this project into the SD card's existing `WIDGETS` directory.
@@ -33,6 +33,10 @@ It works in full screen and a single near-full-screen widget area. **Use a one-w
 For the early `ELRS Diag` development builds, remove the old widget instance before adding SignalView. Settings do not automatically migrate between the two widget names. Do not run both instances while testing module-version discovery.
 
 See [installation and updating](docs/INSTALLATION.md) for the full procedure and rollback steps. Release ZIPs are built with [the packaging tool](tools/build_release.py); use an install ZIP rather than a repository source archive when available.
+
+## Known issue
+
+Slight lag was reported on the MK3 with the selectable footer. The cause has not been measured. Performance optimization is planned.
 
 ## Default settings
 
@@ -61,7 +65,7 @@ This is a running list of setups reported working on physical radios. Reports de
 
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
-| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer bench test with an active receiver connection. Local spacing fix tested and reported working as expected; history scrolling and module-version display previously confirmed. |
+| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer bench test with an active receiver connection. Source-picker footer tested and reported working; slight lag noted. History scrolling and module-version display also confirmed. |
 
 The receiver model, receiver firmware and test duration for this report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
 
