@@ -1,4 +1,4 @@
--- ELRS SignalView 0.2.0-beta.3. Original implementation, MIT licensed.
+-- ELRS SignalView 0.2.0. Original implementation, MIT licensed.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -27,6 +27,8 @@ local footerFields={
   ['1RSS']={2,'RX RSSI 1','RX1 dBm',' dBm'}, ['2RSS']={3,'RX RSSI 2','RX2 dBm',' dBm'}
 }
 local footerDefaults={'TPWR','RFMD','RSNR','TQLY'}
+local sensorIndexByName={}
+for index,definition in ipairs(definitions) do sensorIndexByName[string.lower(definition[1])]=index end
 local invalidFooter={0,'UNSUPPORTED','Unsup.',''}
 local function resolveFooter(w)
   for i,key in ipairs(footerDefaults) do
@@ -53,15 +55,18 @@ local C = {
 -- after widget creation. A name existing does not imply its value is current.
 local function scan(w)
   -- Resolve discovered names without consuming the shared CRSF telemetry queue.
-  local names = {}
-  if sources then
-    for id, name in sources() do names[string.lower(name)] = id end
+  local missing=false
+  for _,sensor in ipairs(w.sensors) do
+    local info=getFieldInfo(sensor.name)
+    sensor.id=info and info.id or nil
+    if not sensor.id then missing=true end
   end
-  for _,s in ipairs(w.sensors) do
-    s.id = names[string.lower(s.name)]
-    if not s.id then
-      local info = getFieldInfo(s.name)
-      if info then s.id = info.id end
+  -- Direct lookups avoid enumerating every stick/channel/source in the common
+  -- case. Keep case-insensitive enumeration for undiscovered/legacy names.
+  if missing and sources then
+    for id,name in sources() do
+      local index=sensorIndexByName[string.lower(name)]
+      if index and not w.sensors[index].id then w.sensors[index].id=id end
     end
   end
   resolveFooter(w)
@@ -118,15 +123,16 @@ local colorRanks={[C.text]=0,[C.warn]=1,[C.red]=2,[C.muted]=-1}
 -- Current text/bar state is independent for each series. Worsening is immediate;
 -- recovery needs both a 2-unit margin and sustained time. Raw graph colors do
 -- not pass through this state machine. Staleness/context changes reset it.
-local function smooth(w,index,color,now)
+local function smooth(w,index,color,now,warning,critical)
   if w.options.Recover==0 then if w.alerts then w.alerts[index]=nil end;return color end
   local s=w.sensors[index]
-  local warning,critical=thresholds(w)
-  local key=index==1 and (w.options.LQwarn..'/'..w.options.LQcrit) or (w.options.RSSImode..'/'..tostring(warning)..'/'..tostring(critical))
+  local mode=index==1 and -2 or w.options.RSSImode
+  local contextWarn=index==1 and w.options.LQwarn or warning
+  local contextCrit=index==1 and w.options.LQcrit or critical
   w.alerts=w.alerts or {}
   local a=w.alerts[index]
-  if not a or a.key~=key or now<a.time or color==C.muted or not s.current then
-    a={key=key,color=color,time=now};w.alerts[index]=a;return color
+  if not a or a.mode~=mode or a.warning~=contextWarn or a.critical~=contextCrit or now<a.time or color==C.muted or not s.current then
+    a={mode=mode,warning=contextWarn,critical=contextCrit,color=color,time=now};w.alerts[index]=a;return color
   end
   a.time=now
   local rank,old=colorRanks[color],colorRanks[a.color]
@@ -141,7 +147,9 @@ local function smooth(w,index,color,now)
   if now-a.since>=w.options.Recover*100 then a.color=color;a.since=nil;a.target=nil end
   return a.color
 end
--- Extend acquisition with bounded in-memory raw history and plot buckets.
+-- Sample at the original cadence; retain the latest diagnostic sample and
+-- the exact same one-second plot buckets. The unused 151-sample duplicate
+-- history is not needed to preserve dips, colors, gaps or the 30-second view.
 -- Never draw all raw samples: that caused the original hardware CPU-limit bug.
 local baseSample=sample
 sample=function(w)
@@ -149,22 +157,19 @@ sample=function(w)
   baseSample(w)
   if previous==w.sampleTime then return end
   local now=w.sampleTime
-  if w.history and #w.history>0 and now<w.history[#w.history].time then w.history={} end
-  w.history=w.history or {}
-  w.sequence=(w.sequence or 0)+1
-  local point={time=now,seq=w.sequence,colors={}}
-  w.displayColors={}
+  local point={time=now,colors={}}
+  w.lastSample=point
+  w.displayColors=w.displayColors or {}
+  local warning,critical=thresholds(w)
   for i=1,3 do
     local s=w.sensors[i]
-    local color=severity(w,s,i~=1)
+    local color=severity(w,s,i~=1,warning,critical)
     if s.current and type(s.value)=='number' then
       point[i]=s.value
       point.colors[i]=color
     end
-    w.displayColors[i]=smooth(w,i,color,now)
+    w.displayColors[i]=smooth(w,i,color,now,warning,critical)
   end
-  w.history[#w.history+1]=point
-  while #w.history>151 or (#w.history>0 and now-w.history[1].time>3000) do table.remove(w.history,1) end
   -- Bound drawing work independently of refresh frequency. Retain the weakest
   -- sample per second, with its original color, so short dips remain visible.
   if not w.plotHistory or (w.plotHistory[#w.plotHistory] and now<w.plotHistory[#w.plotHistory].time) then w.plotHistory={} end
@@ -176,9 +181,10 @@ sample=function(w)
     plots[#plots+1]=bucket
   end
   for i=1,3 do
-    if point[i]==nil then bucket[i]=nil;bucket.colors[i]=nil;bucket.gap[i]=true
+    if point[i]==nil then
+      bucket[i]=nil;bucket.colors[i]=nil;bucket.gap[i]=true;bucket.layoutW=nil
     elseif not bucket.gap[i] and (bucket[i]==nil or point[i]<bucket[i]) then
-      bucket[i]=point[i];bucket.colors[i]=point.colors[i]
+      bucket[i]=point[i];bucket.colors[i]=point.colors[i];bucket.layoutW=nil
     end
   end
   -- Keep one predecessor outside the window to clip a continuous line at its
@@ -267,20 +273,15 @@ local function discoverVersion(w)
 end
 local function value(s)
   if not s.current or type(s.value) ~= "number" then return "--" end
-  return string.format("%.0f",s.value)
-end
-local function status(w)
-  if not getSourceValue then return "getSourceValue API required", C.warn end
-  local s=w.sensors[1]
-  if s.current and type(s.value)=="number" then return "UPLINK DATA CURRENT", C.accent end
-  if not s.id then return "RQly SENSOR NOT FOUND", C.warn end
-  return "NO CURRENT UPLINK DATA", C.warn
+  if s.textValue~=s.value then
+    s.textValue=s.value;s.text=string.format("%.0f",s.value)
+  end
+  return s.text
 end
 -- Freeze each sample's color when recorded, including unavailable auto state.
-severity=function(w,s,rssi)
+severity=function(w,s,rssi,warning,critical)
   if not s.current or type(s.value)~='number' then return C.muted end
   if rssi then
-    local warning,critical=thresholds(w)
     if not warning then return w.options.RSSImode==2 and C.text or C.muted end
     if s.value<=critical then return C.red end
     if s.value<=warning then return C.warn end
@@ -293,6 +294,22 @@ severity=function(w,s,rssi)
 end
 local function displayColor(w,index)
   return w.displayColors and w.displayColors[index] or C.muted
+end
+-- X changes as the window scrolls, but settled bucket Y coordinates do not.
+-- Recompute Y only when a bucket changes or the widget area is resized. Cache
+-- per instance/bucket; changing screen origin does not change local geometry.
+local function preparePlot(w,W,H,left,right,rxTop,rxHeight,lqTop,lqHeight)
+  local now=getTime()
+  for _,point in ipairs(w.plotHistory or {}) do
+    point.screenX=left+(point.time-(now-3000))/3000*(right-left)
+    if point.layoutW~=W or point.layoutH~=H then
+      local a,b,q=point[2],point[3],point[1]
+      point.rxY1=a and (rxTop+(-40-math.max(-120,math.min(-40,a)))/80*rxHeight) or nil
+      point.rxY2=b and (rxTop+(-40-math.max(-120,math.min(-40,b)))/80*rxHeight) or nil
+      point.lqY=q and (lqTop+(100-math.max(0,math.min(100,q)))/100*lqHeight) or nil
+      point.layoutW=W;point.layoutH=H
+    end
+  end
 end
 -- Compact landscape and portrait share the approved information hierarchy.
 -- Every plot uses one predecessor outside the window for left-edge clipping.
@@ -308,6 +325,7 @@ local function compactDashboard(w,W,H)
   local timeY=footer-20
   local graphBottom=timeY-6
   local panelH=math.floor((graphBottom-chartTop)/2)
+  preparePlot(w,W,H,left,right,chartTop+17,panelH-21,chartTop+panelH+17,panelH-21)
   local q=w.sensors[1]
   text(p,6,versionHeader(w),SMLSIZE)
   text(W-p,6,w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry'),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
@@ -346,13 +364,12 @@ local function compactDashboard(w,W,H)
     end
     for antenna=1,panel==1 and 2 or 1 do
       local px,py
-      local now=getTime()
       for _,point in ipairs(w.plotHistory or {}) do
         local index=panel==1 and antenna+1 or 1
         local v=point[index]
-        local x=left+(point.time-(now-3000))/3000*(right-left)
+        local x=point.screenX
         if v and x<=right then
-          local yy=y0+(high-math.max(low,math.min(high,v)))/(high-low)*(bottom-y0)
+          local yy=panel==1 and (antenna==1 and point.rxY1 or point.rxY2) or point.lqY
           if px and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
             local color=point.colors[index]
@@ -419,6 +436,7 @@ local function dashboard(w,W,H)
   local plotH=math.max(25,math.floor((footer-chartTop-48)/2))
   local left=p+36
   local right=W-p-3
+  preparePlot(w,W,H,left,right,chartTop+28,plotH-38,chartTop+plotH+46,plotH-38)
   for panel=1,2 do
     local ytop=chartTop+(panel-1)*(plotH+18)
     text(p,ytop,panel==1 and 'ANT 1 solid / ANT 2 dashed - dBm' or 'Link Quality - %',small,C.muted)
@@ -430,14 +448,14 @@ local function dashboard(w,W,H)
       rect(left,yy,right-left,1,C.rule)
       text(left-4,yy-7,string.format('%.0f',high-n*(high-low)/2),small+RIGHT,C.muted)
     end
-    local now=getTime()
     for antenna=1,panel==1 and 2 or 1 do
       local px,py
       for _,point in ipairs(w.plotHistory or {}) do
-        local v=panel==1 and point[antenna+1] or point[1]
-        local x=left+(point.time-(now-3000))/3000*(right-left)
+        local index=panel==1 and antenna+1 or 1
+        local v=point[index]
+        local x=point.screenX
         if v and x<=right then
-          local yy=y0+(high-math.max(low,math.min(high,v)))/(high-low)*h
+          local yy=panel==1 and (antenna==1 and point.rxY1 or point.rxY2) or point.lqY
           if px and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
             local color=point.colors[panel==1 and antenna+1 or 1]
@@ -466,18 +484,19 @@ end
 -- whole screen: small/multi-widget zones stay blank, with no prompt or preview.
 local function refresh(w,event,touch)
   sample(w)
-  local full = event ~= nil
-  local z = full and {x=0,y=0,w=LCD_W,h=LCD_H} or w.zone
-  originX,originY=z.x,z.y
-  rect(0,0,z.w,z.h,C.bg)
-  local large=z.w>=LCD_W*0.95 and z.h>=LCD_H*0.95 and z.w>=300 and z.h>=240
+  local full=event~=nil
+  local width,height
+  if full then originX,originY=0,0;width,height=LCD_W,LCD_H
+  else originX,originY=w.zone.x,w.zone.y;width,height=w.zone.w,w.zone.h end
+  rect(0,0,width,height,C.bg)
+  local large=width>=LCD_W*0.95 and height>=LCD_H*0.95 and width>=300 and height>=240
   if not full and not large then return end
   discoverVersion(w)
   if EVT_VIRTUAL_EXIT and event == EVT_VIRTUAL_EXIT and lcd.exitFullScreen then
     lcd.exitFullScreen()
     return
   end
-  dashboard(w,z.w,z.h)
+  dashboard(w,width,height)
 end
 return {
   name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0}}, create=create,

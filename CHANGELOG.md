@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-10-23
+
+First non-beta release. Includes the selectable ELRS footer from beta.3.
+
+- Remove the unused duplicate raw-history buffer; keep the displayed 30-second weakest-value history and acquisition cadence.
+- Cache plot geometry and formatted readings, reuse display colors, and compare recovery contexts without temporary strings.
+- Use direct known-source lookup before case-insensitive enumeration.
+- Fix a large-screen missing-antenna fallback that could draw Link Quality as receiver signal.
+- Add isolated profiling and bounded before/after output comparisons.
+
 ## 0.2.0-beta.3 — 2026-10-23
 
 - Select each footer reading with EdgeTX's native source picker.

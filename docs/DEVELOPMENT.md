@@ -21,12 +21,12 @@ The widget is intentionally a single installable Lua file. Supporting documentat
 | Function / block | Responsibility |
 | --- | --- |
 | `definitions`, `C`, `sensitivity` | Sensor schema, palette and ELRS 4.x RFMD sensitivity map |
-| `scan` | Case-insensitive source lookup, cached IDs and periodic rediscovery |
+| `scan` | Direct known-source lookup, case-insensitive fallback, cached IDs and periodic rediscovery |
 | Initial `sample` | Rate-limited source acquisition and current/fresh/stale state |
 | `thresholds` | Auto/Manual/Off and validation; effective RSSI boundaries |
 | `severity` | Raw white/amber/red/muted classification |
 | `smooth` | Independent current-reading recovery timers and margins |
-| Extended `sample` | Raw history, stored colors and bounded one-second plot buckets |
+| Extended `sample` | Latest diagnostic sample, stored colors and bounded one-second plot buckets |
 | `defaults` | Public option labels to copied internal settings |
 | `create`, `update` | Per-instance construction and settings updates |
 | `text`, `rect`, `line` | Coordinate translation for the selected drawing area |
@@ -37,13 +37,13 @@ The widget is intentionally a single installable Lua file. Supporting documentat
 | `refresh` | Full-screen/large-zone eligibility, background clearing and exit handling |
 | `background` callback | Uses sampling without version queries or drawing |
 
-`status` is a retained diagnostic helper, currently unused by the dashboard.
+`preparePlot` updates scrolling X positions once per bucket per frame. It caches Y positions until a bucket value or zone dimensions change. Numeric text is formatted only when its value changes.
 
 ## Timing and state
 
 EdgeTX `getTime()` returns centiseconds. Acquisition interval is 20 ticks, rediscovery interval 200 ticks, graph window 3000 ticks and a one-second bucket 100 ticks. Version discovery uses a separate visible-only ten-second budget.
 
-Each widget table owns sensor state, options, raw history, plot buckets, alert timers and cached module version. Shared drawing-origin locals are reset at the beginning of every synchronous refresh. There is no disk persistence in the widget itself; EdgeTX persists its option values.
+Each widget table owns sensor state, options, its latest diagnostic sample, plot buckets, alert timers and cached module version. Shared drawing-origin locals are reset at the beginning of every synchronous refresh. There is no disk persistence in the widget itself; EdgeTX persists its option values.
 
 Sensor slots 1–3 are deliberately shared with the history schema: LQ, antenna 1 and antenna 2. Altering that order requires changes to both renderers and tests.
 

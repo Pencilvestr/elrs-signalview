@@ -1,5 +1,6 @@
 {
   "status": "PASS",
+  "build": "0.2.0",
   "radios": [
     {
       "radio": "tx16smk3",
@@ -55,7 +56,7 @@
         "08-exit.png"
       ],
       "elapsed_seconds": 33.72,
-      "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
+      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
     },
     {
       "radio": "tx16s",
@@ -110,8 +111,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.69,
-      "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
+      "elapsed_seconds": 33.7,
+      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
     },
     {
       "radio": "tx15",
@@ -166,8 +167,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.69,
-      "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
+      "elapsed_seconds": 33.72,
+      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
     },
     {
       "radio": "nv14",
@@ -222,8 +223,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.67,
-      "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
+      "elapsed_seconds": 33.7,
+      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
     },
     {
       "radio": "pa01",
@@ -278,8 +279,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 34.22,
-      "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
+      "elapsed_seconds": 34.2,
+      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
     }
   ],
   "checked_date": "2026-10-23",
@@ -365,9 +366,9 @@
     }
   },
   "source_picker": {
-    "opened": true,
-    "TPWR_selected_by_touch": true,
-    "selection_persisted_after_restart": true,
-    "widget_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365"
-  }
+    "selected_source_persisted_after_restart": true,
+    "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+  },
+  "equivalence_cases": 130,
+  "performance_report": "performance-results.json"
 }

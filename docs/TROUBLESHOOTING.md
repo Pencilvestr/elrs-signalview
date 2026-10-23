@@ -35,4 +35,4 @@ Use the bug-report form. Include only relevant logs/screenshots with identifying
 
 ## Reported lag
 
-Slight lag was reported on an MK3 with the selectable-footer build. The cause is unmeasured; optimization is planned. Include where the lag occurs, its approximate duration, selected footer sensors and other running widgets when reporting it.
+Slight lag was reported on an MK3 with the selectable-footer build. The cause is unmeasured. Version 0.2.0 includes simulator-measured optimizations; physical confirmation is pending. Include where the lag occurs, its approximate duration, selected footer sensors and other running widgets when reporting it.

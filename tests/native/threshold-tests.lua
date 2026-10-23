@@ -18,7 +18,7 @@ function getSourceValue(id) return values[id],current[id]~=false,true end
 w=app.create({x=0,y=0,w=800,h=480},{})
 white=lcd.RGB(255,255,255); amber=lcd.RGB(255,195,106); red=lcd.RGB(255,116,116); muted=lcd.RGB(167,185,173)
 checks={}
-function sample() tick=tick+20;w.options.Recover=0;w.scanTime=tick;app.background(w);return w.history[#w.history] end
+function sample() tick=tick+20;w.options.Recover=0;w.scanTime=tick;app.background(w);return w.lastSample end
 p=sample()
 end,
 function()
@@ -30,7 +30,7 @@ function()
 checks.mode_change_250Hz=p.colors[2]==white
 end,
 function()
-checks.history_retains_color=w.history[#w.history-1].colors[2]==original
+checks.history_retains_color=w.plotHistory[1].colors[2]==original
 values[5]=255;p=sample();checks.unknown_mode=p.colors[2]==muted
 values[5]=29;current[5]=false;p=sample();checks.stale_mode=p.colors[2]==muted
 current[5]=true;values[5]=13;p=sample();checks.no_legacy_guess=p.colors[2]==muted

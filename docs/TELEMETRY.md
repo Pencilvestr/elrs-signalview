@@ -4,7 +4,7 @@
 
 ## Sensor mapping
 
-Names are resolved case-insensitively and IDs are cached. Lookup first uses `sources()` and then `getFieldInfo()` as a fallback. Measurements use `getSourceValue()` so missing, current and stale readings can be distinguished.
+Names are resolved case-insensitively and IDs are cached. Lookup first uses `getFieldInfo()` for the ten known names, then a case-insensitive `sources()` fallback if needed. Measurements use `getSourceValue()` so missing, current and stale readings can be distinguished.
 
 | Sensor | Meaning | Display |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ The second reading appears when `2RSS` is numeric and current. That is telemetry
 
 - Window: 30 seconds, in memory only.
 - Acquisition target: at most 5 Hz; actual scheduling can be slower.
-- Raw buffer: up to 151 samples within the time window.
+- Storage: one latest diagnostic sample and up to 32 plot buckets; no duplicate high-rate raw buffer.
 - Display: one bucket per second per series, retaining that bucket's lowest numeric sample and its original color.
 - Draw bound: at most 32 plot buckets, including the predecessor needed to clip the line at the left edge.
 - Missing/stale data creates gaps. A missing reading marks that series' whole one-second bucket as a gap.

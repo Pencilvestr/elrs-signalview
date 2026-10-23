@@ -1,0 +1,43 @@
+{
+  "firmware": "EdgeTX 2.12.5",
+  "target": "TX16S MK3 simulator, 800x480",
+  "baseline": [
+    {
+      "run": "baseline-control",
+      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "steady_callbacks": 1083,
+      "mean_instruction_budget_percent": 44.28808864265928,
+      "live_instruction_budget_percent": 45.86086956521739,
+      "max_instruction_budget_percent": 54.0,
+      "start_heap_KiB": 64.45117,
+      "retained_heap_KiB": 161.6309,
+      "heap_growth_KiB": 97.17969
+    }
+  ],
+  "candidate": [
+    {
+      "run": "final-control",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "steady_callbacks": 1075,
+      "mean_instruction_budget_percent": 38.72372093023256,
+      "live_instruction_budget_percent": 40.081751824817516,
+      "max_instruction_budget_percent": 45.0,
+      "start_heap_KiB": 67.0127,
+      "retained_heap_KiB": 134.7422,
+      "heap_growth_KiB": 67.72949
+    }
+  ],
+  "relative_reduction_percent": {
+    "live_instruction_budget_percent": 12.60141335127011,
+    "retained_heap_KiB": 16.635866037991498,
+    "max_instruction_budget_percent": 16.666666666666668
+  },
+  "equivalence_cases": 130,
+  "reference_correction": "Only the released missing-antenna and/or fallback is corrected in the comparison oracle.",
+  "limits": [
+    "getUsage measures Lua instruction budget, not total CPU time.",
+    "Heap is isolated Windows x64 Lua VM memory after test-only full GC at 45 seconds.",
+    "Each run uses 60 seconds of changing live telemetry, then warning/stale/recovery/exit.",
+    "Radio CPU utilization, peak heap, UI latency and physical RAM savings are unmeasured."
+  ]
+}

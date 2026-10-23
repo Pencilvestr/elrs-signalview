@@ -25,15 +25,15 @@ Use one widget with the top bar OFF, or open full screen. Small areas stay blank
 Migrating from ELRS Diag: remove the old instance, add SignalView, and re-enter
 any custom settings. The product name and install directory have changed.
 
-Upgrading: record settings, restart, remove and re-add SignalView, then restore
-thresholds and select Footer 1-4 using the native source picker. Select current
+Upgrading from beta.3: replace the Lua and restart; existing settings are retained.
+For older text-selector builds, record settings and re-add SignalView. Select current
 ELRS sensor readings, not their min/max variants. None uses the original default.
 
 Defaults: LQ amber 80%, LQ red 60%, RSSI mode Auto, Manual RX amber/red
 -98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode is
 a text field accepting Auto, Manual or Off. Record settings before upgrades.
 
-This is a public beta. Begin with a bench test, with propellers
+Begin with a bench test, with propellers
 removed or the motor disconnected. See the project README for documentation,
 testing limits and feedback instructions. Module-version discovery briefly
 uses the shared CRSF Lua queue; avoid another querying widget during discovery.

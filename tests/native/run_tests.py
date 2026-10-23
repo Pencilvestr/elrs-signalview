@@ -46,7 +46,7 @@ def run_one(radio):
     smooth_rows=[line.split('|') for line in content.splitlines() if line.startswith('SMOOTH|')]
     checks['smoothing_scenarios']=len(smooth_rows)==13 and all(row[2]=='true' for row in smooth_rows)
     footer_rows=[line.split('|') for line in content.splitlines() if line.startswith('FOOTER|')]
-    checks['footer_scenarios']=len(footer_rows)==14 and all(row[2]=='true' for row in footer_rows)
+    checks['footer_scenarios']=len(footer_rows)==15 and all(row[2]=='true' for row in footer_rows)
     images=[]
     for p in sorted(run.glob('*.png')):
         with Image.open(p) as im:

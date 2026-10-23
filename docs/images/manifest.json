@@ -8,10 +8,10 @@
         800,
         480
       ],
-      "sha256": "65fcb248c27a2d9ffd1996ef25b3acc565a19213e539bb43e9d72d1275b10275",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "7fe4618366bb7f781a6e86797b0d0a852e23286122684acc540c31c911420574",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -21,10 +21,10 @@
         800,
         480
       ],
-      "sha256": "b58f8bad7a0517048159977f082ab5dcd7c0f0517fb03dfc8b91bf1567efda89",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "c4e6c558f47409ac633709502389763b2eb1262a3eea682de04560b0c23bb1f5",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -34,10 +34,10 @@
         800,
         480
       ],
-      "sha256": "fc324438aebc72ab8d9b07e9507f8a1ce19e74c8388a2a60ecd09f5dda90ab92",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "24af7aeef97c6cc8f22a03e95bac93e26302408cf8a8e7aefcbebea38576873d",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -47,10 +47,10 @@
         800,
         480
       ],
-      "sha256": "71b30109c483241d50e1d145f5498ae4246e20fec286fec9af124a09868aebd1",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "e208cbdeaff72460cbfaf70baa4804e571f66d4b98c16edf400514803a44bacd",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -60,10 +60,10 @@
         800,
         480
       ],
-      "sha256": "33a689ed40469bc4915d78acc8086153811199a04e66b0cbd5438ceded01150d",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "5251c467c9a481ec32589003fafecf8b4bf415999092967007ea85d34b3ed2f7",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -73,10 +73,10 @@
         320,
         480
       ],
-      "sha256": "87d70a2bae831da7a848fc74a981e7da9e7f372d2668c2c1b2cfdb50103cb8aa",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "c9026c3fec75e4e38aa1e949628c01c4921f46bee9bf102cb87d5d0a76c076a4",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -86,10 +86,10 @@
         320,
         240
       ],
-      "sha256": "6d3a0dfc89d294f1a4717b72b6f218f00025d3a9b2d2ce8f8cfa9a78e79083fd",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "63ef7e7bce57c3e90a4dfbb807d902121ccb07aaefc514ae071facaa31467e19",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -100,9 +100,9 @@
         480
       ],
       "sha256": "fdf35dc7883bf131aabd8451af157e29ae2a79cd3ab57e930152bf762264fcea",
-      "origin": "Beta.3 native simulator run",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": false
     },
@@ -112,10 +112,10 @@
         480,
         320
       ],
-      "sha256": "3aa6f789035f4d99b4588d1738cefe7f78ab6cd037e27d536c1ace86c7913f8e",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "7b340e51c915296c3e08483e932f1100a64d5fcde9ff0f5aa43f892e43daecf4",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -125,25 +125,10 @@
         480,
         272
       ],
-      "sha256": "d65dd1eb88046d1d418e8606b0f6d0f6c442988c927a82554755b7ea638d7cd5",
-      "origin": "Beta.3 native simulator run",
+      "sha256": "79a7a1c7fdf1b55e9d71275011c2b75a291b7842f7dd81d459875d517e25d206",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
-      "synthetic_telemetry": true,
-      "synthetic_module_version": true
-    },
-    {
-      "file": "signalview-demo.gif",
-      "size": [
-        800,
-        480
-      ],
-      "frames": 96,
-      "duration_ms": 24000,
-      "sha256": "bfc5a83b9a0c9aa93404d5d355898ddce41f7f7f3c7c89fa2b8d6877c4543fad",
-      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
-      "captured_date": "2026-10-23",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -154,11 +139,26 @@
         480
       ],
       "sha256": "32fa93a74c26abe608a9d21cc201b3001482239962eac955d9c0b07c81f93d54",
-      "source_sha256": "bf9e2cfa35241dd8d20dbf46d3b2a817affa16a356e287df6d3e4e2453af4365",
-      "origin": "Beta.3 native simulator run",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "origin": "0.2.0 native simulator run",
       "captured_date": "2026-10-23",
       "synthetic_telemetry": true,
       "synthetic_module_version": false
+    },
+    {
+      "file": "signalview-demo.gif",
+      "size": [
+        800,
+        480
+      ],
+      "frames": 96,
+      "duration_ms": 24000,
+      "sha256": "ecad79819fea312181b2d039c4203d0b41511886a203d47b42da00cac4554a31",
+      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
+      "captured_date": "2026-10-23",
+      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
     }
   ]
 }

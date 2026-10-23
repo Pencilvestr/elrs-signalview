@@ -18,7 +18,7 @@ function getSourceValue(id) return values[id],current[id]~=false,true end
 w=app.create({x=0,y=0,w=800,h=480},{})
 white=lcd.RGB(255,255,255); amber=lcd.RGB(255,195,106); red=lcd.RGB(255,116,116); muted=lcd.RGB(167,185,173)
 checks={}
-function sample() tick=tick+20;w.scanTime=tick;app.background(w);return w.history[#w.history] end
+function sample() tick=tick+20;w.scanTime=tick;app.background(w);return w.lastSample end
 current[2]=true;values[2]=-62;values[1]=99
 app.update(w,{['Recover s']=1})
 sample()
