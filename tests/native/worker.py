@@ -203,12 +203,13 @@ def main():
                 tap(205,255)  # Telemetry category in EdgeTX's native source picker.
                 capture('footer-source-picker')
                 if args.picker_select_power:
-                    for _ in range(2):
-                        touch(obj,1,550,410);wait(.1)
-                        for y in range(390,89,-20):touch(obj,2,550,y);wait(.05)
-                        touch(obj,0,550,90);wait(2)
+                    # The fixture's telemetry-only list starts at None; TPWR
+                    # follows six sensors with current/minimum/maximum entries.
+                    # Encoder steps avoid timing-dependent inertial scrolling.
+                    rotary=fn(sim,'?rotaryEncoderEvent@OpenTxSimulator@@UEAAXH@Z',[P,C.c_int])
+                    for _ in range(19):rotary(obj,1);wait(.1)
                     capture('footer-picker-scrolled')
-                    tap(455,160)
+                    press(2)
                     capture('footer-picker-changed')
             fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
             sys.stdout.flush();sys.stderr.flush();os._exit(0)
