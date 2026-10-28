@@ -25,7 +25,8 @@ Use one widget with the top bar OFF, or open full screen. Small areas stay blank
 Migrating from ELRS Diag: remove the old instance, add SignalView, and re-enter
 any custom settings. The product name and install directory have changed.
 
-Upgrading from beta.3: replace the Lua and restart; existing settings are retained.
+Upgrading from 0.2.0: replace the Lua and restart; existing settings are retained.
+Antennas defaults to Auto; Single and Dual are also available in widget settings.
 For older text-selector builds, record settings and re-add SignalView. Select current
 ELRS sensor readings, not their min/max variants. None uses the original default.
 

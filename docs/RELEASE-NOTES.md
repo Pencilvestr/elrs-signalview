@@ -1,19 +1,12 @@
-# ELRS SignalView 0.2.0
+# ELRS SignalView 0.3.0
 
-First non-beta release.
+- Automatically adapt the display to one or two usable antenna telemetry paths, with Auto, Single and Dual options.
+- Show readable RF-mode names for ELRS 3.x and 4.x. Large screens include modulation and band; compact screens retain the mode name.
+- Place dBm beside each antenna reading and center the single-antenna display.
+- Refresh screenshots and the README GIF, showing startup without a connection, connection, signal changes and recovery.
 
-- Reduce Lua work and retained memory through bounded history, cached graph geometry and formatted readings.
-- Fix missing antenna data drawing a false receiver-signal segment.
-- Keep the approved layout, sampling cadence, alert behavior and selectable ELRS footer.
+Unknown RF modes or firmware versions retain a labeled raw index. Ambiguous 3.x frequency bands show `Band ?`. Automatic RSSI thresholds remain ELRS 4.x only; use Manual or Off with 3.x.
 
-## Testing
+Tested in five native EdgeTX 2.12.5 simulator targets. The maintainer confirmed the corresponding 0.3.0-dev.3 build working on the TX16S MK3.
 
-Five native EdgeTX 2.12.5 simulator targets pass. Includes 130 before/after comparisons, threshold and recovery checks, saved footer selections and full-history rendering.
-
-Earlier builds were bench-tested on a TX16S MK3 with EdgeTX 2.12.5 and internal ELRS 4.0.0. The optimized build still needs physical confirmation; the previously reported slight lag is not proven fixed. See the performance report for measurements and limits.
-
-## Install or update
-
-Download `elrs-signalview-0.2.0.zip`, copy its WIDGETS folder to the SD card and restart. Upgrading from beta.3 preserves settings. Older text-selector builds need the widget re-added after recording settings. Select current ELRS sensors, not min/max variants; None uses the default for that position.
-
-A SHA-256 checksum is included.
+To update, copy the install ZIP's `WIDGETS` folder onto the SD card and restart the radio. Existing 0.2.0 settings are retained; Antennas defaults to Auto. A SHA-256 checksum is included.

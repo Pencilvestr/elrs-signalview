@@ -55,7 +55,7 @@ return function()
     local function record(kind,...)
       commands[#commands+1]={kind,...}
     end
-    lcd={RGB=originalLCD.RGB,drawText=function(...) record('text',...) end,
+    lcd={RGB=originalLCD.RGB,sizeText=originalLCD.sizeText,drawText=function(...) record('text',...) end,
       drawLine=function(...) record('line',...) end,
       drawFilledRectangle=function(...) record('rect',...) end,
       exitFullScreen=function() record('exit') end}

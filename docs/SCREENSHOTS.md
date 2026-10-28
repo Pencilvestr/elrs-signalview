@@ -8,13 +8,17 @@ All dashboard images below are actual native EdgeTX 2.12.5 simulator captures. T
 
 ![Changing telemetry and scrolling history](images/signalview-demo.gif)
 
-A continuous 24-second native MK3 simulator capture at four frames per second, following a history warm-up. Synthetic receiver signal and Link Quality fall into amber and red, then recover. Transmit power, RF-mode index, receiver SNR and downlink quality also change. RF-mode changes are scripted demonstration steps, not a claim that the module automatically changes modes. The history uses the widget's normal sampling and drawing. The recording loops with a visible restart; it is not a live RF measurement.
+A continuous 40-second native MK3 simulator capture at four frames per second. It begins with no current telemetry and empty history, then connects, qualifies both antenna paths, and shows synthetic receiver signal and Link Quality falling into amber and red before recovering. Transmit power, readable RF mode, receiver SNR and downlink quality also change. RF-mode changes are scripted demonstration steps, not automatic module behavior. The history uses normal widget sampling and drawing. The loop visibly returns to its disconnected starting state; no zero-valued signal readings are fabricated.
 
 Reproduce with the native worker's `--demo` option, then run `python tools/build_demo.py`. The GIF uses a shared palette derived from the captured frames; no readings or graph lines are drawn separately.
 
 ## MK3: normal, warning and degraded
 
+![No active telemetry connection](images/mk3-no-connection.png)
+
 ![Normal telemetry](images/mk3-normal.png)
+
+![Single-antenna view with adjacent dBm unit](images/mk3-single.png)
 
 ![Amber warning telemetry](images/mk3-warning.png)
 

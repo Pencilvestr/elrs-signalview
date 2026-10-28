@@ -2,27 +2,29 @@
 
 A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Stable release: 0.2.0.**
+**Version 0.3.0.**
 
 ![SignalView showing changing signal levels, alert colors and scrolling history](docs/images/signalview-demo.gif)
 
-*Looping native EdgeTX 2.12.5 simulator capture with synthetic telemetry and a simulated module version response. Signal levels fall and recover while the history scrolls; the loop restarts after 24 seconds.*
+*Native EdgeTX 2.12.5 simulator capture with synthetic telemetry. The 40-second loop starts disconnected, establishes a link, then shows signal degradation and recovery while the history fills and footer readings change.*
 
 ## What it shows
 
-- Large Link Quality and receiver-signal readings, with independent antenna values when available.
-- A 30-second history of receiver signal and Link Quality. Antenna 1 is solid; antenna 2 is dashed.
+- Large Link Quality and receiver-signal readings, with dBm beside each antenna value.
+- Automatic single/dual-antenna display, with Auto, Single and Dual options.
+- A 30-second history of receiver signal and Link Quality. Single view shows the selected antenna; dual view uses solid and dashed traces.
 - White, amber and red current readings; green normal RSSI history and blue normal LQ history.
 - Immediate worsening indications and configurable delayed recovery.
 - Automatic RSSI thresholds from the verified ELRS 4.x RF-mode table, or manual thresholds.
 - Four selectable ELRS footer readings using EdgeTX's source picker. Defaults: TX power, RF mode, receiver SNR and downlink quality.
+- Readable RF-mode names for ELRS 3.x and 4.x. Large screens also show modulation and band when known.
 - The transmitter module's reported firmware version when discovery succeeds.
 
 It works in full screen and a single near-full-screen widget area. **Use a one-widget layout with the EdgeTX top bar off.** Small widget areas intentionally stay blank. There are no miniature dashboards, prompts, voice alarms, flight logging or RF-setting controls.
 
 ## Install
 
-[Download the installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.2.0/elrs-signalview-0.2.0.zip) from the [release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.2.0).
+[Download the installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.3.0/elrs-signalview-0.3.0.zip) from the [release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.3.0).
 
 1. Back up your model and SD card.
 2. Copy `WIDGETS/SignalView` from this project into the SD card's existing `WIDGETS` directory.
@@ -30,13 +32,9 @@ It works in full screen and a single near-full-screen widget area. **Use a one-w
 4. Restart the radio. Select **SignalView** in the model's widget setup and use a single-widget layout with the top bar off, or open the widget full screen.
 5. Establish the ELRS connection and discover telemetry sensors in EdgeTX if necessary.
 
-For the early `ELRS Diag` development builds, remove the old widget instance before adding SignalView. Settings do not automatically migrate between the two widget names. Do not run both instances while testing module-version discovery.
-
 See [installation and updating](docs/INSTALLATION.md) for the full procedure and rollback steps. Release ZIPs are built with [the packaging tool](tools/build_release.py); use an install ZIP rather than a repository source archive when available.
 
-## Known issue
-
-Slight lag was reported on the MK3 with the selectable footer. Version 0.2.0 reduces measured simulator Lua work and retained memory; confirmation on the physical MK3 is pending. See [performance results and limits](docs/PERFORMANCE.md).
+## Known Issue
 
 ## Default settings
 
@@ -48,6 +46,7 @@ Slight lag was reported on the MK3 with the selectable footer. Version 0.2.0 red
 | RX amber | -98 | Manual RSSI amber boundary, dBm |
 | RX red | -103 | Manual RSSI red boundary, dBm |
 | Recover s | 1 | Recovery hold in seconds; 0 disables smoothing |
+| Antennas | Auto | Infer available RSSI paths, or select Single / Dual |
 
 Auto uses the current ELRS 4.x RFMD sensitivity limit plus 10 dB for amber and plus 5 dB for red. These two stages are a project policy based on ELRS's documented warning-margin guidance. The 80% LQ early warning is also a project choice; ELRS documents 60% as an OSD alarm starting point. None of these values predicts a failsafe or remaining range. [Settings and thresholds](docs/SETTINGS.md) explains boundaries, recovery and limitations.
 
@@ -65,9 +64,9 @@ This is a running list of setups reported working on physical radios. Reports de
 
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
-| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer bench test with an active receiver connection. Source-picker footer tested and reported working; slight lag noted. History scrolling and module-version display also confirmed. |
+| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer reported 0.3.0-dev.3 working correctly on the radio, including the updated UI. Firmware versions are from the previously documented setup. |
 
-This hardware report covers earlier beta builds; the 0.2.0 optimization has simulator coverage and awaits hardware confirmation. The receiver model, receiver firmware and test duration for this report still need to be recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
+The 0.3.0 release uses the same widget behavior as the tested 0.3.0-dev.3 build. Receiver model, receiver firmware and test duration have not been recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
 
 ### Simulator coverage
 
@@ -75,13 +74,13 @@ These targets passed native EdgeTX **2.12.5** tests. They are listed separately 
 
 | Radio / target | Resolution | Evidence |
 | --- | --- | --- |
-| TX16S MK3 | 800 Ã— 480 | Native simulator; physical report above |
-| TX16S | 480 Ã— 272 | Native simulator only |
-| TX15 | 480 Ã— 320 | Native simulator only |
-| NV14 | 320 Ã— 480 | Native simulator only |
-| PA01 | 320 Ã— 240 | Native simulator only |
+| TX16S MK3 | 800 × 480 | Native simulator; physical report above |
+| TX16S | 480 × 272 | Native simulator only |
+| TX15 | 480 × 320 | Native simulator only |
+| NV14 | 320 × 480 | Native simulator only |
+| PA01 | 320 × 240 | Native simulator only |
 
-Automatic RFMD decoding is for **ELRS 4.x**. A detected 3.x module disables Auto RSSI classification; use Manual. An unknown firmware version does not establish 4.x compatibility. See [testing evidence and limits](docs/TESTING.md).
+RF-mode names support **ELRS 3.x and 4.x**. Automatic RSSI thresholds remain **ELRS 4.x only**; use Manual or Off for 3.x. Unknown versions/modes retain a raw RFMD label, and ambiguous 3.x bands display `Band ?`. See [testing evidence and limits](docs/TESTING.md).
 
 ## Help and feedback
 

@@ -1,6 +1,5 @@
 {
   "status": "PASS",
-  "build": "0.2.0",
   "radios": [
     {
       "radio": "tx16smk3",
@@ -55,8 +54,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.72,
-      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+      "elapsed_seconds": 33.62,
+      "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50"
     },
     {
       "radio": "tx16s",
@@ -111,8 +110,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.7,
-      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+      "elapsed_seconds": 33.61,
+      "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50"
     },
     {
       "radio": "tx15",
@@ -167,8 +166,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.72,
-      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+      "elapsed_seconds": 33.55,
+      "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50"
     },
     {
       "radio": "nv14",
@@ -223,8 +222,8 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 33.7,
-      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+      "elapsed_seconds": 33.53,
+      "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50"
     },
     {
       "radio": "pa01",
@@ -279,96 +278,160 @@
         "07-recovery.png",
         "08-exit.png"
       ],
-      "elapsed_seconds": 34.2,
-      "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+      "elapsed_seconds": 34.08,
+      "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50"
     }
   ],
-  "checked_date": "2026-10-23",
-  "supplemental_checks": {
-    "compact-footer-checks.json": {
-      "tx16smk3_0_label": true,
-      "tx16smk3_0_value": true,
-      "tx16smk3_1_label": true,
-      "tx16smk3_1_value": true,
-      "tx16smk3_2_label": true,
-      "tx16smk3_2_value": true,
-      "tx16smk3_3_label": true,
-      "tx16smk3_3_value": true,
-      "tx16s_0_label": true,
-      "tx16s_0_value": true,
-      "tx16s_1_label": true,
-      "tx16s_1_value": true,
-      "tx16s_2_label": true,
-      "tx16s_2_value": true,
-      "tx16s_3_label": true,
-      "tx16s_3_value": true,
-      "tx15_0_label": true,
-      "tx15_0_value": true,
-      "tx15_1_label": true,
-      "tx15_1_value": true,
-      "tx15_2_label": true,
-      "tx15_2_value": true,
-      "tx15_3_label": true,
-      "tx15_3_value": true,
-      "nv14_0_label": true,
-      "nv14_0_value": true,
-      "nv14_1_label": true,
-      "nv14_1_value": true,
-      "nv14_2_label": true,
-      "nv14_2_value": true,
-      "nv14_3_label": true,
-      "nv14_3_value": true,
-      "pa01_0_label": true,
-      "pa01_0_value": true,
-      "pa01_1_label": true,
-      "pa01_1_value": true,
-      "pa01_2_label": true,
-      "pa01_2_value": true,
-      "pa01_3_label": true,
-      "pa01_3_value": true
+  "method": "Installed Companion native firmware DLLs, original Lua, injected CRSF link-statistics packets, direct RGB565 framebuffer copies",
+  "limitations": [
+    "Version coverage is the installed simulator build only",
+    "Sensor definitions are preconfigured; interactive discovery is not tested",
+    "No physical RF link or radio hardware performance test",
+    "Minimal SD assets; splash/audio assets absent",
+    "Adapter uses exact-build MSVC x64 exported C++ ABI and refuses changed library hashes"
+  ],
+  "build": "0.3.0",
+  "verified_date": "2026-10-28",
+  "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+  "supplemental": {
+    "footer": {
+      "passed": 40,
+      "checks": {
+        "tx16smk3_0_label": true,
+        "tx16smk3_0_value": true,
+        "tx16smk3_1_label": true,
+        "tx16smk3_1_value": true,
+        "tx16smk3_2_label": true,
+        "tx16smk3_2_value": true,
+        "tx16smk3_3_label": true,
+        "tx16smk3_3_value": true,
+        "tx16s_0_label": true,
+        "tx16s_0_value": true,
+        "tx16s_1_label": true,
+        "tx16s_1_value": true,
+        "tx16s_2_label": true,
+        "tx16s_2_value": true,
+        "tx16s_3_label": true,
+        "tx16s_3_value": true,
+        "tx15_0_label": true,
+        "tx15_0_value": true,
+        "tx15_1_label": true,
+        "tx15_1_value": true,
+        "tx15_2_label": true,
+        "tx15_2_value": true,
+        "tx15_3_label": true,
+        "tx15_3_value": true,
+        "nv14_0_label": true,
+        "nv14_0_value": true,
+        "nv14_1_label": true,
+        "nv14_1_value": true,
+        "nv14_2_label": true,
+        "nv14_2_value": true,
+        "nv14_3_label": true,
+        "nv14_3_value": true,
+        "pa01_0_label": true,
+        "pa01_0_value": true,
+        "pa01_1_label": true,
+        "pa01_1_value": true,
+        "pa01_2_label": true,
+        "pa01_2_value": true,
+        "pa01_3_label": true,
+        "pa01_3_value": true
+      }
     },
-    "widget-area-checks.json": {
-      "tx16smk3_readings_unchanged": true,
-      "tx16smk3_footer_unchanged": true,
-      "tx16smk3_small_area_blank": true,
-      "tx16s_readings_unchanged": true,
-      "tx16s_footer_unchanged": true,
-      "tx16s_small_area_blank": true,
-      "tx15_readings_unchanged": true,
-      "tx15_footer_unchanged": true,
-      "tx15_small_area_blank": true,
-      "nv14_readings_unchanged": true,
-      "nv14_footer_unchanged": true,
-      "nv14_small_area_blank": true,
-      "pa01_readings_unchanged": true,
-      "pa01_footer_unchanged": true,
-      "pa01_small_area_blank": true,
-      "normal_view_full_history": true,
-      "plot_work_bounded": true,
-      "normal_view_no_CPU_error": true,
-      "soak_used_current_source": true,
-      "RSSI_reaches_left_edge": true,
-      "LQ_reaches_left_edge": true
+    "dashboard": {
+      "passed": 12,
+      "checks": {
+        "04-connected_LQ_text": true,
+        "04-connected_antenna_text": true,
+        "04b-warning_LQ_text": true,
+        "04b-warning_antenna_text": true,
+        "04c-critical_LQ_text": true,
+        "04c-critical_antenna_text": true,
+        "normal_green_bar": true,
+        "warning_history": true,
+        "critical_history": true,
+        "stale_has_no_current_LQ": true,
+        "time_labels_clear_separator": true,
+        "rssi_threshold_label_clear_divider": true
+      }
     },
-    "dashboard-checks.json": {
-      "04-connected_LQ_text": true,
-      "04-connected_antenna_text": true,
-      "04b-warning_LQ_text": true,
-      "04b-warning_antenna_text": true,
-      "04c-critical_LQ_text": true,
-      "04c-critical_antenna_text": true,
-      "normal_green_bar": true,
-      "warning_history": true,
-      "critical_history": true,
-      "stale_has_no_current_LQ": true,
-      "time_labels_clear_separator": true,
-      "rssi_threshold_label_clear_divider": true
+    "widget_area": {
+      "passed": 21,
+      "checks": {
+        "tx16smk3_readings_unchanged": true,
+        "tx16smk3_footer_unchanged": true,
+        "tx16smk3_small_area_blank": true,
+        "tx16s_readings_unchanged": true,
+        "tx16s_footer_unchanged": true,
+        "tx16s_small_area_blank": true,
+        "tx15_readings_unchanged": true,
+        "tx15_footer_unchanged": true,
+        "tx15_small_area_blank": true,
+        "nv14_readings_unchanged": true,
+        "nv14_footer_unchanged": true,
+        "nv14_small_area_blank": true,
+        "pa01_readings_unchanged": true,
+        "pa01_footer_unchanged": true,
+        "pa01_small_area_blank": true,
+        "normal_view_full_history": true,
+        "plot_work_bounded": true,
+        "normal_view_no_CPU_error": true,
+        "soak_used_current_source": true,
+        "RSSI_reaches_left_edge": true,
+        "LQ_reaches_left_edge": true
+      }
     }
   },
-  "source_picker": {
-    "selected_source_persisted_after_restart": true,
-    "widget_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3"
+  "rf_mode_checks": {
+    "status": "PASS",
+    "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+    "checks": {
+      "verified-cases_complete": true,
+      "verified-cases_no_errors": true,
+      "verified-cases_current_source": true,
+      "verified-cases_51_unique_RF_cases": true,
+      "verified-cases_discovered_version": true,
+      "verified-cases_full_history": true,
+      "verified-cases_stale_capture": true,
+      "compact-approved_complete": true,
+      "compact-approved_no_errors": true,
+      "compact-approved_current_source": true,
+      "compact-approved_51_unique_RF_cases": true,
+      "compact-approved_discovered_version": true,
+      "compact-approved_full_history": true,
+      "compact-approved_stale_capture": true,
+      "final-v3_complete": true,
+      "final-v3_no_errors": true,
+      "final-v3_current_source": true,
+      "final-v3_discovered_version": true,
+      "final-v3_full_history": true,
+      "final-v3_stale_capture": true
+    },
+    "limits": "Native EdgeTX 2.12.5 with synthetic telemetry/device info; no physical ELRS 3.x/4.x hardware validation."
   },
-  "equivalence_cases": 130,
-  "performance_report": "performance-results.json"
+  "antenna_cases_passed": 58,
+  "animation": {
+    "frames": 160,
+    "frame_duration_ms": 250,
+    "duration_ms": 40000,
+    "disconnected_frames": 12,
+    "firmware": "2.12.5",
+    "radio": "tx16smk3",
+    "widget_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+    "synthetic_telemetry": true,
+    "synthetic_module_version": true
+  },
+  "hardware": {
+    "radio": "RadioMaster TX16S MK3",
+    "tested_build": "0.3.0-dev.3",
+    "reported_result": "Working correctly",
+    "report_date": "2026-10-28",
+    "last_documented_edgetx": "2.12.5",
+    "last_documented_internal_elrs": "4.0.0",
+    "versions_reconfirmed_this_report": false,
+    "duration_recorded": false,
+    "release_diff_from_tested_lua": "Version comment only"
+  },
+  "performance": "Historical 0.2.0 measurements remain in performance-results.json; not remeasured for 0.3.0."
 }
