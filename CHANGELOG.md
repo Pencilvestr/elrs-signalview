@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — pending release approval
+## 0.3.0 — 2026-10-28
 
 - Infer one or two usable antenna telemetry paths after a one-second detection period.
 - Add Auto / Single / Dual antenna display selection.
