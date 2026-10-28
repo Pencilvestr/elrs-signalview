@@ -10,9 +10,9 @@ Names are resolved case-insensitively and IDs are cached. Lookup first uses `get
 | --- | --- | --- |
 | RQly | Uplink Link Quality, % | Main reading, green bar, lower history |
 | 1RSS | Receiver antenna 1 RSSI, dBm | Main reading, solid upper history |
-| 2RSS | Receiver antenna 2 RSSI, dBm | Second main reading, dashed upper history when available |
+| 2RSS | Receiver antenna 2 RSSI, dBm | Second main reading; dashed in dual view, solid when displayed alone |
 | RSNR | Receiver SNR, dB | Footer |
-| RFMD | RF-mode index | Raw numeric footer and Auto threshold lookup |
+| RFMD | RF-mode index | Version-aware readable footer and Auto threshold lookup; raw fallback for unknown versions/modes |
 | TPWR | TX power reported by EdgeTX, mW | Footer |
 | TQly | Downlink quality, % | Footer |
 | TRSS | Downlink RSSI, dBm | Selectable footer reading |
@@ -23,7 +23,11 @@ All ten listed fields can be selected in the footer. Its four columns remain cen
 
 ## Antennas
 
-The second reading appears when `2RSS` is numeric and current. That is telemetry availability, not hardware identification: a second sensor field alone cannot prove that a receiver has two independently measured physical antennas. SignalView does not infer which antenna is active from the strongest number and does not highlight an antenna automatically. Select ANT in the footer to show the antenna number reported by EdgeTX.
+Each displayed antenna reading has its own smaller, muted `dBm` unit beside the number. In single-antenna view, the reading and unit are centered together above the antenna label. Unit placement does not change warning colors, graph positions or footer spacing.
+
+Auto requires one second of continuous current, finite negative RSSI per antenna. Zero placeholders do not qualify. Once both paths have qualified, the dual layout stays established for the widget instance, including telemetry loss and reconnection. A missing reading shows `--` and leaves a history gap. Equal readings and weak negative readings remain valid.
+
+This infers available telemetry paths, not physical antenna count or antenna health. Switching receivers within the same model cannot reliably reset this inference: restart/recreate the widget or choose an explicit display mode. The single view selects ANT 2 when only that path qualifies; it labels the selected path and draws that antenna's own history, never a merged history of both antennas. Select ANT in the footer to see the antenna index reported by EdgeTX; it does not control the layout. Raw footer readings remain available independently of the main-display filtering.
 
 ## History
 

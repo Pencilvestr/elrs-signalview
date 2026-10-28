@@ -10,7 +10,7 @@ docs/                       User guides, references and real simulator screensho
 tests/native/               Windows native EdgeTX simulator adapter and fixtures
 tools/                      Repository validation and deterministic ZIP packaging
 .github/                    Issue forms, PR template and lightweight CI
-VERSION                     Beta package version
+VERSION                     Install package version
 CHANGELOG.md                Human-readable release history
 ```
 
@@ -21,6 +21,7 @@ The widget is intentionally a single installable Lua file. Supporting documentat
 | Function / block | Responsibility |
 | --- | --- |
 | `definitions`, `C`, `sensitivity` | Sensor schema, palette and ELRS 4.x RFMD sensitivity map |
+| `rfModes`, `rfMode`, `drawRFMode` | Version-specific display metadata, current-data lookup and cached split-cell geometry |
 | `scan` | Direct known-source lookup, case-insensitive fallback, cached IDs and periodic rediscovery |
 | Initial `sample` | Rate-limited source acquisition and current/fresh/stale state |
 | `thresholds` | Auto/Manual/Off and validation; effective RSSI boundaries |
@@ -32,6 +33,7 @@ The widget is intentionally a single installable Lua file. Supporting documentat
 | `text`, `rect`, `line` | Coordinate translation for the selected drawing area |
 | `versionHeader`, `discoverVersion` | Bounded foreground CRSF version discovery and header fallback |
 | `value`, `displayColor` | Formatting and current-color lookup |
+| `drawAntenna` | Adjacent muted dBm unit, centered single view, per-sensor text-measurement cache |
 | `compactDashboard` | Approved compact landscape/portrait rendering |
 | `dashboard` | Large-screen rendering and renderer selection |
 | `refresh` | Full-screen/large-zone eligibility, background clearing and exit handling |

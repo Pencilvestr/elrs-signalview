@@ -3,15 +3,28 @@
   "firmware": "2.12.5",
   "images": [
     {
+      "file": "footer-source-picker.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "d38d623e636f9f475c4965a546a094f2b42032fc559d4eb79efc402205bc4606",
+      "origin": "0.3.0 native simulator run: release-settings/footer-source-picker.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
       "file": "mk3-critical.png",
       "size": [
         800,
         480
       ],
-      "sha256": "7fe4618366bb7f781a6e86797b0d0a852e23286122684acc540c31c911420574",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "afd9c280ad43a3c17e3c1c949a1c7d4a511510bb32d9ce4466e3477dc757db1b",
+      "origin": "0.3.0 native simulator run: tx16smk3/04c-critical.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -21,10 +34,23 @@
         800,
         480
       ],
-      "sha256": "c4e6c558f47409ac633709502389763b2eb1262a3eea682de04560b0c23bb1f5",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "9ecfb058b56aa21998cc013488b4c01a6c0623cae0380873771f2047854d4d4a",
+      "origin": "0.3.0 native simulator run: ../large-zone-probe/zone-full-history.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "mk3-no-connection.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "ce5a1e09c59b17efac7d18c00f2c4512e842fe9a74f5d34c8f4048df7d644bf8",
+      "origin": "0.3.0 native simulator run: demo/demo-000.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -34,10 +60,23 @@
         800,
         480
       ],
-      "sha256": "24af7aeef97c6cc8f22a03e95bac93e26302408cf8a8e7aefcbebea38576873d",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "9c7fccaf7dc7bbcabe2c6108e15743fd0f640114402e597946a712d18e9218d9",
+      "origin": "0.3.0 native simulator run: tx16smk3/04-connected.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "mk3-single.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "80ce6ed4beb7f5e623550c9449975ca8e0056231c97c68ed159592eaceb6564f",
+      "origin": "0.3.0 native simulator run: release-single/antenna-full-history.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -47,10 +86,10 @@
         800,
         480
       ],
-      "sha256": "e208cbdeaff72460cbfaf70baa4804e571f66d4b98c16edf400514803a44bacd",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "d7a05c22c491a0c87334626459bf8278bf8b16a1c14a589144a48609fafb3d34",
+      "origin": "0.3.0 native simulator run: tx16smk3/06-stale.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -60,10 +99,10 @@
         800,
         480
       ],
-      "sha256": "5251c467c9a481ec32589003fafecf8b4bf415999092967007ea85d34b3ed2f7",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "e4c8b8cf6176c3033285ec55398d0a7357a9dd7bbfc3154c3d82bc0194c88836",
+      "origin": "0.3.0 native simulator run: tx16smk3/04b-warning.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -73,10 +112,10 @@
         320,
         480
       ],
-      "sha256": "c9026c3fec75e4e38aa1e949628c01c4921f46bee9bf102cb87d5d0a76c076a4",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "76dd52df6f41a8ae8857b072c359d9dac0404ce85521a79fc6c01c0bd0fa3deb",
+      "origin": "0.3.0 native simulator run: nv14/04-connected.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -86,10 +125,10 @@
         320,
         240
       ],
-      "sha256": "63ef7e7bce57c3e90a4dfbb807d902121ccb07aaefc514ae071facaa31467e19",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "2f17f763dab5c549e9452ac7453a4453621a5da7e80865de2b4dd4dad7d22885",
+      "origin": "0.3.0 native simulator run: pa01/04-connected.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -99,12 +138,29 @@
         800,
         480
       ],
-      "sha256": "fdf35dc7883bf131aabd8451af157e29ae2a79cd3ab57e930152bf762264fcea",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "91553e2e441b25d8059fdaba631a03713a2e8bff740636b9345d3b2eb598f5cf",
+      "origin": "0.3.0 native simulator run: release-settings/settings-saved.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
-      "synthetic_module_version": false
+      "synthetic_module_version": true
+    },
+    {
+      "file": "signalview-demo.gif",
+      "size": [
+        800,
+        480
+      ],
+      "frames": 145,
+      "captured_frames": 160,
+      "starts_disconnected": true,
+      "duration_ms": 40000,
+      "sha256": "251234ef7007ba5bf570adf2788a61b3c181ee6f8d0b0900996a15415e00e286",
+      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
     },
     {
       "file": "tx15.png",
@@ -112,10 +168,10 @@
         480,
         320
       ],
-      "sha256": "7b340e51c915296c3e08483e932f1100a64d5fcde9ff0f5aa43f892e43daecf4",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "7cf178462b603cf00d5164eb052c9d4cdc7c0f17c7d4470562a8de1135e39de7",
+      "origin": "0.3.0 native simulator run: tx15/04-connected.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -125,38 +181,10 @@
         480,
         272
       ],
-      "sha256": "79a7a1c7fdf1b55e9d71275011c2b75a291b7842f7dd81d459875d517e25d206",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
-      "synthetic_telemetry": true,
-      "synthetic_module_version": true
-    },
-    {
-      "file": "footer-source-picker.png",
-      "size": [
-        800,
-        480
-      ],
-      "sha256": "32fa93a74c26abe608a9d21cc201b3001482239962eac955d9c0b07c81f93d54",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
-      "origin": "0.2.0 native simulator run",
-      "captured_date": "2026-10-23",
-      "synthetic_telemetry": true,
-      "synthetic_module_version": false
-    },
-    {
-      "file": "signalview-demo.gif",
-      "size": [
-        800,
-        480
-      ],
-      "frames": 96,
-      "duration_ms": 24000,
-      "sha256": "ecad79819fea312181b2d039c4203d0b41511886a203d47b42da00cac4554a31",
-      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
-      "captured_date": "2026-10-23",
-      "source_sha256": "36ce1b4c16822f9d8505460c5f5b2b861b56a7fcc23435aff7863f3bc67871b3",
+      "sha256": "cb8f34d258320ecb4584be1fead1208932ba618574fa0f23e6c34a609335a293",
+      "origin": "0.3.0 native simulator run: tx16s/04-connected.png",
+      "captured_date": "2026-10-28",
+      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     }

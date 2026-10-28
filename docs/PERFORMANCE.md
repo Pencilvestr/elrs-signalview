@@ -1,4 +1,4 @@
-# Performance review â€” 0.2.0
+# Performance review — 0.2.0
 
 [Back to README](../README.md)
 
@@ -30,7 +30,7 @@ The source file grows slightly; runtime memory is the useful metric here.
 
 See [the measured results](performance-results.json) for exact values and source
 hashes. The controlled pair uses identical test observers and official EdgeTX
-2.12.5 MK3 simulator libraries at 800 Ã— 480. Each run has 60 seconds of changing
+2.12.5 MK3 simulator libraries at 800 × 480. Each run has 60 seconds of changing
 telemetry followed by warning, stale-data, recovery and exit phases.
 
 | Measurement | Released beta.3 | 0.2.0 |

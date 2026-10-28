@@ -29,6 +29,15 @@ def main():
     parser.add_argument('--profile',action='store_true',help='Measure Lua instruction budget and VM heap without functional-test overhead')
     parser.add_argument('--widget-source',help='Alternate local Lua for controlled baseline comparisons')
     parser.add_argument('--reference-source',help='Enable deterministic drawing/state comparison against this local Lua')
+    parser.add_argument('--antenna-preview',choices=['single1','single2','dual'],help='Capture full-history antenna layout with synthetic telemetry')
+    parser.add_argument('--antenna-mode',choices=['Auto','Single','Dual'],help='Persist antenna CHOICE in the model fixture')
+    parser.add_argument('--antenna-tests',action='store_true',help='Run bounded antenna detection/rendering cases')
+    parser.add_argument('--rf-tests',action='store_true',help='Run versioned RF label and layout cases')
+    parser.add_argument('--rf-preview',action='store_true',help='Capture RF mode transitions and a full history')
+    parser.add_argument('--elrs-major',type=int,choices=[3,4],default=4)
+    parser.add_argument('--antenna-settings-probe',action='store_true',help='Scroll native MK3 settings to antenna dropdown')
+    parser.add_argument('--antenna-picker-probe',action='store_true',help='Open native antenna choices after scrolling')
+    parser.add_argument('--antenna-select-dual',action='store_true',help='Select Dual in the observed MK3 antenna dropdown')
     args=parser.parse_args()
     width,height=RADIOS[args.radio]
     run=Path(args.run_dir).resolve()
@@ -51,9 +60,12 @@ def main():
         sensor_slots={name:int(slot) for slot,name in re.findall(
             r'(?ms)^   (\d+):\s*\n(?:(?!^   \d+:).)*?^      label: "([^"]+)"',telemetry)}
         vals+=footer
+        if args.antenna_mode:vals.append(['Auto','Single','Dual'].index(args.antenna_mode)+1)
         entries=''
         for i,v in enumerate(vals):
-            if i>=6:
+            if i==10:
+                typ='Unsigned';field='unsignedValue';val=str(v)
+            elif i>=6:
                 typ='Source';field='source'
                 val=f'tele({sensor_slots[v]})' if v in sensor_slots else v
             else:
@@ -73,6 +85,10 @@ def main():
     shutil.copyfile(HERE/'threshold-tests.lua',lab/'threshold-tests.lua')
     shutil.copyfile(HERE/'smoothing-tests.lua',lab/'smoothing-tests.lua')
     shutil.copyfile(HERE/'footer-tests.lua',lab/'footer-tests.lua')
+    shutil.copyfile(HERE/'antenna-tests.lua',lab/'antenna-tests.lua')
+    shutil.copyfile(HERE/'rf-tests.lua',lab/'rf-tests.lua')
+    (lab/'rf-enabled.lua').write_text('return '+('true' if args.rf_tests else 'false')+'\n')
+    (lab/'antenna-enabled.lua').write_text('return '+('true' if args.antenna_tests else 'false')+'\n')
     shutil.copyfile(HERE/'profile.lua',lab/'profile.lua')
     (lab/'profile-enabled.lua').write_text('return '+('true' if args.profile else 'false')+'\n')
     (lab/'reference-enabled.lua').write_text('return '+('true' if args.reference_source else 'false')+'\n')
@@ -130,9 +146,11 @@ def main():
         send(obj,2,ba)
     def inject():
         nonlocal version_sent
+        if args.antenna_preview=='single1':stats[1]=0
+        elif args.antenna_preview=='single2':stats[0]=0;stats[4]=1
         send_packet(bytes([0x14]+[v&255 for v in stats]))
         if not version_sent:
-            send_packet(bytes([0x29,0xEA,0xEE])+b'Sim ELRS\0ELRS'+bytes([0,0,0,0,0,4,0,0,0,0]))
+            send_packet(bytes([0x29,0xEA,0xEE])+b'Sim ELRS\0ELRS'+bytes([0,0,0,0,0,args.elrs_major,0,0,0,0]))
             version_sent=True
     def wait(seconds):
         deadline=time.monotonic()+seconds;next_packet=0
@@ -162,12 +180,35 @@ def main():
             tap(width/2,height/2,1.1)
             tap(width/2,height/2+42)
             capture('settings-reopened' if args.reuse_settings else 'settings-saved')
+            if args.antenna_settings_probe:
+                assert args.radio=='tx16smk3','Antenna settings coordinates target MK3'
+                touch(obj,1,620,380);wait(.1)
+                for y in range(360,119,-20):touch(obj,2,620,y);wait(.05)
+                touch(obj,0,620,120);wait(.8)
+                capture('antenna-settings')
+                if args.antenna_picker_probe:
+                    tap(450,400)
+                    capture('antenna-choices')
+                    if args.antenna_select_dual:
+                        tap(310,287)
+                        capture('antenna-choice-changed')
             if args.source_picker_probe:
                 assert args.radio=='tx16smk3','Picker coordinates target the MK3'
-                tap(455,415)
+                # Bring Footer 1 fully inside the scrollable settings pane.
+                touch(obj,1,620,380);wait(.1)
+                for y in range(360,259,-20):touch(obj,2,620,y);wait(.05)
+                touch(obj,0,620,260);wait(2)
+                capture('footer-settings')
+                tap(425,210)
+                tap(205,255)  # Telemetry category in EdgeTX's native source picker.
                 capture('footer-source-picker')
                 if args.picker_select_power:
-                    tap(455,285)
+                    for _ in range(2):
+                        touch(obj,1,550,410);wait(.1)
+                        for y in range(390,89,-20):touch(obj,2,550,y);wait(.05)
+                        touch(obj,0,550,90);wait(2)
+                    capture('footer-picker-scrolled')
+                    tap(455,160)
                     capture('footer-picker-changed')
             fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
             sys.stdout.flush();sys.stderr.flush();os._exit(0)
@@ -184,35 +225,57 @@ def main():
             tap(width/2,height/2-5)
         wait(.5)
         capture('03-no-data-fullscreen')
-        print('PHASE|connected',flush=True)
-        streaming=True;wait(3)
-        capture('04-connected')
-        if args.reference_source:
-            # The oracle chunks comparisons across callbacks so test code does
-            # not compete with a complete renderer for the Lua CPU budget.
-            wait(75)
         if args.demo:
             import math
             print('PHASE|demo',flush=True)
-            # Warm a full history window, then capture one repeating 24-second
-            # telemetry cycle. Production Lua and its drawing are unchanged.
-            for index in range(224):
-                phase=(index % 96)/96
-                degradation=(1-math.cos(phase*2*math.pi))/2
-                stats[0]=round(-62-43*degradation)
-                stats[1]=stats[0]-3
-                stats[2]=round(99-53*degradation)
-                # Exercise all footer fields too. RFMD changes are deliberate
-                # synthetic demonstration steps, not automatic mode switching.
-                stats[3]=round(9-14*degradation)  # Receiver SNR, dB.
-                stats[5]=(29,28,27,28)[(index % 96)//24]
-                stats[6]=(2,3,7,4)[min(3,int(degradation*4))]
-                stats[8]=round(99-31*degradation)  # Downlink quality, percent.
+            # Forty seconds from disconnected startup through connection,
+            # degradation and recovery. No warm-up or fabricated zero readings.
+            for index in range(160):
+                streaming=index>=12
+                if streaming:
+                    elapsed=(index-12)/4
+                    phase=max(0,min(1,(elapsed-5)/24))
+                    degradation=(1-math.cos(phase*2*math.pi))/2
+                    stats[0]=round(-62-43*degradation)
+                    stats[1]=stats[0]-3
+                    stats[2]=round(99-53*degradation)
+                    stats[3]=round(9-14*degradation)
+                    stats[5]=(29,28,27,28)[min(3,int(phase*4))] if phase<1 else 29
+                    stats[6]=(2,3,7,4)[min(3,int(degradation*4))]
+                    stats[8]=round(99-31*degradation)
+                capture(f'demo-{index:03d}')
                 wait(.25)
-                if index>=128:capture(f'demo-{index-128:03d}')
+            (run/'demo-capture.json').write_text(json.dumps({
+                'frames':160,'frame_duration_ms':250,'duration_ms':40000,
+                'disconnected_frames':12,'firmware':'2.12.5','radio':args.radio,
+                'widget_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
+                'synthetic_telemetry':True,'synthetic_module_version':True},indent=2))
             print('PHASE|complete',flush=True)
             fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
             sys.stdout.flush();sys.stderr.flush();os._exit(0)
+        print('PHASE|connected',flush=True)
+        if args.elrs_major==3:stats[5]=9
+        streaming=True;wait(3)
+        capture('04-connected')
+        if args.rf_preview:
+            for mode in ([29,28,11,100,33,255] if args.elrs_major==4 else [9,8,2,7,19,13,255]):
+                stats[5]=mode;wait(1);capture(f'rf-{mode}')
+            stats[5]=29 if args.elrs_major==4 else 9
+            wait(32);capture('rf-full-history')
+            streaming=False;wait(12);capture('rf-stale')
+            print('PHASE|complete',flush=True)
+            fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
+            sys.stdout.flush();sys.stderr.flush();os._exit(0)
+        if args.antenna_preview:
+            wait(32)
+            capture('antenna-full-history')
+            print('PHASE|complete',flush=True)
+            fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
+            sys.stdout.flush();sys.stderr.flush();os._exit(0)
+        if args.reference_source or args.antenna_tests or args.rf_tests:
+            # The oracle chunks comparisons across callbacks so test code does
+            # not compete with a complete renderer for the Lua CPU budget.
+            wait(75)
         if args.zone_probe:
             press(1,1.1);wait(.6)
             capture('zone-connected')

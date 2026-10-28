@@ -1,4 +1,4 @@
--- ELRS SignalView 0.2.0. Original implementation, MIT licensed.
+-- ELRS SignalView 0.3.0. Original implementation, MIT licensed.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -103,6 +103,42 @@ local sensitivity={
   [28]=-105,[29]=-105,[30]=-104,[31]=-104,[32]=-104,[33]=-104,
   [34]=-103,[35]=-103,[36]=-103,[100]=-112,[101]=-112
 }
+-- Display metadata is versioned separately from automatic RSSI thresholds.
+-- Entries: readable rate, modulation, band. See docs/RF-MODES.md for sources.
+-- 3.x reuses some indices across bands (including LR1121 dual-band modes).
+-- Never infer the band from module branding or carry a 4.x label into 3.x.
+local rfModes={
+  [4]={
+    [0]={'25Hz','LoRa','900M'},[1]={'50Hz','LoRa','900M'},
+    [2]={'100Hz','LoRa','900M'},[3]={'100Hz Full','LoRa','900M'},
+    [5]={'200Hz','LoRa','900M'},[6]={'200Hz Full','LoRa','900M'},
+    [7]={'250Hz','LoRa','900M'},[10]={'D50','LoRa','900M'},
+    [11]={'K1000 Full','FSK','900M'},[21]={'50Hz','LoRa','2.4G'},
+    [23]={'100Hz Full','LoRa','2.4G'},[24]={'150Hz','LoRa','2.4G'},
+    [27]={'250Hz','LoRa','2.4G'},[28]={'333Hz Full','LoRa','2.4G'},
+    [29]={'500Hz','LoRa','2.4G'},[30]={'D250','FLRC','2.4G'},
+    [31]={'D500','FLRC','2.4G'},[32]={'F500','FLRC','2.4G'},
+    [33]={'F1000','FLRC','2.4G'},[34]={'DK250','FSK','2.4G'},
+    [35]={'DK500','FSK','2.4G'},[36]={'K1000','FSK','2.4G'},
+    [100]={'100Hz Full','LoRa','X-Band'},[101]={'150Hz','LoRa','X-Band'}
+  },
+  [3]={
+    [1]={'25Hz','LoRa','900M'},[2]={'50Hz','LoRa','Band ?'},
+    [3]={'100Hz','LoRa','900M'},[4]={'100Hz Full','LoRa','Band ?'},
+    [5]={'150Hz','LoRa','Band ?'},[6]={'200Hz','LoRa','900M'},
+    [7]={'250Hz','LoRa','Band ?'},[8]={'333Hz Full','LoRa','2.4G'},
+    [9]={'500Hz','LoRa','2.4G'},[10]={'D250','FLRC','2.4G'},
+    [11]={'D500','FLRC','2.4G'},[12]={'F500','FLRC','2.4G'},
+    [13]={'F1000','FLRC','2.4G'},[14]={'D50','LoRa','900M'},
+    [15]={'200Hz Full','LoRa','900M'},[16]={'DK500','FSK','2.4G'},
+    [19]={'K1000 Full','FSK','900M'}
+  }
+}
+local function rfMode(w)
+  local s=w.sensors[5]
+  local map=rfModes[w.moduleMajor]
+  if s.current and type(s.value)=='number' and map then return map[s.value] end
+end
 -- Return effective RSSI amber/red boundaries, or nil plus a visible reason.
 -- RFMD alone cannot identify the ELRS major version; Auto targets 4.x only.
 local function thresholds(w)
@@ -151,20 +187,62 @@ end
 -- the exact same one-second plot buckets. The unused 151-sample duplicate
 -- history is not needed to preserve dips, colors, gaps or the 30-second view.
 -- Never draw all raw samples: that caused the original hardware CPU-limit bug.
+-- Zero is an unused-RSSI placeholder, not evidence of an antenna. Keep raw
+-- telemetry intact for footer selections; filter only the main RSSI/history.
+local function usableRSSI(s)
+  return s.current and type(s.value)=='number' and s.value<0 and s.value>-math.huge
+end
+-- Infer available signal paths, not physical hardware or antenna health.
+-- Require a second of continuous evidence per path. Once observed, retain
+-- dual layout through dropouts/reconnection so a missing path stays visible.
+local function detectAntennas(w,now)
+  local a=w.antenna
+  if not a then a={selected=1};w.antenna=a end
+  if a.time and now<a.time then a.since1=nil;a.since2=nil;a.missingSince=nil end
+  a.time=now
+  local first,second=usableRSSI(w.sensors[2]),usableRSSI(w.sensors[3])
+  if first then
+    a.since1=a.since1 or now
+    if now-a.since1>=100 then a.seen1=true end
+  else a.since1=nil end
+  if second then
+    a.since2=a.since2 or now
+    if now-a.since2>=100 then a.seen2=true end
+  else a.since2=nil end
+  a.dual=a.seen1 and a.seen2 or false
+  -- In single view, select a qualified alternative only when the chosen path
+  -- is unavailable. Never follow the strongest RSSI or switch on each packet.
+  local selectedAvailable=(a.selected==1 and first) or (a.selected==2 and second)
+  if selectedAvailable then a.missingSince=nil
+  else
+    a.missingSince=a.missingSince or now
+    local otherSince
+    if a.selected==1 then otherSince=a.since2 else otherSince=a.since1 end
+    if now-a.missingSince>=100 and otherSince and now-otherSince>=100 then
+      a.selected=3-a.selected;a.missingSince=nil
+    end
+  end
+end
+local function antennaLayout(w)
+  local a=w.antenna
+  return w.options.Antennas=='dual' or (w.options.Antennas=='auto' and a and a.dual),a and a.selected or 1
+end
 local baseSample=sample
 sample=function(w)
   local previous=w.sampleTime
   baseSample(w)
   if previous==w.sampleTime then return end
   local now=w.sampleTime
+  detectAntennas(w,now)
   local point={time=now,colors={}}
   w.lastSample=point
   w.displayColors=w.displayColors or {}
   local warning,critical=thresholds(w)
   for i=1,3 do
     local s=w.sensors[i]
-    local color=severity(w,s,i~=1,warning,critical)
-    if s.current and type(s.value)=='number' then
+    local available=s.current and type(s.value)=='number' and (i==1 or usableRSSI(s))
+    local color=available and severity(w,s,i~=1,warning,critical) or C.muted
+    if available then
       point[i]=s.value
       point.colors[i]=color
     end
@@ -202,6 +280,10 @@ local function defaults(options)
   local mode=src['RSSI mode']
   if mode then o.RSSImode=({auto=0,manual=1,off=2})[string.match(string.lower(mode),'^%s*(.-)%s*$')] or -1
   else o.RSSImode=src.RSSImode or 0 end
+  local antennas=src.Antennas
+  if type(antennas)=='number' then antennas=({[1]='auto',[2]='single',[3]='dual'})[antennas] end
+  antennas=type(antennas)=='string' and string.match(string.lower(antennas),'^%s*(.-)%s*$') or 'auto'
+  o.Antennas=(antennas=='single' or antennas=='dual') and antennas or 'auto'
   o.footer={};o.footerSources={}
   for i,key in ipairs(footerDefaults) do
     local setting=src['Footer '..i]
@@ -278,6 +360,58 @@ local function value(s)
   end
   return s.text
 end
+local function antennaValue(s)
+  return usableRSSI(s) and value(s) or '--'
+end
+-- Keep the unit beside its reading and center the complete group in single
+-- view. Cache text measurements until the displayed value or font changes.
+local function drawAntenna(w,index,x,y,font,centered,gap,color)
+  local s=w.sensors[index]
+  local shown=antennaValue(s)
+  local layout=s.readingLayout
+  if not layout or layout.shown~=shown or layout.font~=font then
+    local width,height=lcd.sizeText(shown,font)
+    local unitWidth,unitHeight=lcd.sizeText('dBm',SMLSIZE)
+    layout={shown=shown,font=font,width=width,unitWidth=unitWidth,
+      unitY=math.floor((height-unitHeight)*0.75)}
+    s.readingLayout=layout
+  end
+  local left=centered and (x-(layout.width+gap+layout.unitWidth)/2) or x
+  text(left,y,shown,font,color)
+  text(left+layout.width+gap,y+layout.unitY,'dBm',SMLSIZE,C.muted)
+end
+-- Center the split as one group inside the chosen footer slot. Measure only
+-- when the mode/width changes; ordinary frames reuse the cached geometry.
+-- Long Full labels use the small font rather than overflowing adjacent cells.
+local function drawRFMode(w,x,y,width,compact)
+  local mode=rfMode(w)
+  if not mode then
+    text(x,y,compact and 'RF raw' or 'RF MODE RAW',SMLSIZE+CENTER,C.muted)
+    text(x,y+(compact and 15 or 18),value(w.sensors[5]),(compact and SMLSIZE or MIDSIZE)+CENTER)
+    return
+  end
+  if compact then
+    text(x,y,'RF Mode',SMLSIZE+CENTER,C.muted)
+    text(x,y+15,mode[1],SMLSIZE+CENTER)
+    return
+  end
+  local layout=w.rfLayout
+  if not layout or layout.mode~=mode or layout.width~=width then
+    local font=MIDSIZE
+    local detail=math.max((lcd.sizeText(mode[2],SMLSIZE)),(lcd.sizeText(mode[3],SMLSIZE)))
+    local rate=lcd.sizeText(mode[1],font)
+    if rate+detail+18>width-8 then font=SMLSIZE;rate=lcd.sizeText(mode[1],font) end
+    layout={mode=mode,width=width,font=font,rate=rate,detail=detail,total=rate+detail+18}
+    w.rfLayout=layout
+  end
+  text(x,y,'RF MODE',SMLSIZE+CENTER,C.muted)
+  local left=x-layout.total/2
+  text(left,y+(layout.font==SMLSIZE and 27 or 18),mode[1],layout.font)
+  local divider=left+layout.rate+9
+  rect(divider,y+23,1,32,C.rule)
+  text(divider+9,y+19,mode[2],SMLSIZE,C.muted)
+  text(divider+9,y+36,mode[3],SMLSIZE,C.muted)
+end
 -- Freeze each sample's color when recorded, including unavailable auto state.
 severity=function(w,s,rssi,warning,critical)
   if not s.current or type(s.value)~='number' then return C.muted end
@@ -333,14 +467,15 @@ local function compactDashboard(w,W,H)
   text(p,top,'Link Quality',SMLSIZE,C.muted)
   text(mid,top,'Receiver Signal',SMLSIZE,C.muted)
   text(p,top+17,value(q)..'%',DBLSIZE,displayColor(w,1))
-  local two=w.sensors[3].current and type(w.sensors[3].value)=='number'
+  local two,selected=antennaLayout(w)
   local aw=(W-mid-p)/(two and 2 or 1)
   for a=1,two and 2 or 1 do
-    local x=mid+(a-1)*aw
-    text(x,top+20,value(w.sensors[a+1]),MIDSIZE,displayColor(w,a+1))
-    text(x,top+43,'ANT '..a,SMLSIZE,C.muted)
+    local index=(two and a or selected)+1
+    local x=two and (mid+(a-1)*aw) or ((mid+W-p)/2)
+    local align=two and 0 or CENTER
+    drawAntenna(w,index,x,top+20,MIDSIZE,not two,3,displayColor(w,index))
+    text(x,top+43,'ANT '..(index-1),SMLSIZE+align,C.muted)
   end
-  text(W-p,top+43,'dBm',SMLSIZE+RIGHT,C.muted)
   local warning,critical,mode=thresholds(w)
   local modeText=warning and ((w.options.RSSImode==0 and 'Auto ' or 'Manual ')..warning..'/'..critical) or mode
   text(W-p,portrait and 100 or 89,modeText,SMLSIZE+RIGHT,C.muted)
@@ -353,7 +488,7 @@ local function compactDashboard(w,W,H)
   end
   for panel=1,2 do
     local ytop=chartTop+(panel-1)*panelH
-    text(left,ytop,panel==1 and 'ANT1 / ANT2 dashed - dBm' or 'Link Quality - %',SMLSIZE,C.muted)
+    text(left,ytop,panel==1 and (two and 'ANT1 / ANT2 dashed - dBm' or 'Receiver Signal - dBm') or 'Link Quality - %',SMLSIZE,C.muted)
     local y0=ytop+17
     local bottom=ytop+panelH-4
     local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
@@ -362,14 +497,15 @@ local function compactDashboard(w,W,H)
       rect(left,yy,right-left,1,C.rule)
       text(left-4,yy-6,tostring(n==0 and high or low),SMLSIZE+RIGHT,C.muted)
     end
-    for antenna=1,panel==1 and 2 or 1 do
+    for antenna=1,(panel==1 and two) and 2 or 1 do
       local px,py
       for _,point in ipairs(w.plotHistory or {}) do
-        local index=panel==1 and antenna+1 or 1
+        local path=two and antenna or selected
+        local index=panel==1 and path+1 or 1
         local v=point[index]
         local x=point.screenX
         if v and x<=right then
-          local yy=panel==1 and (antenna==1 and point.rxY1 or point.rxY2) or point.lqY
+          local yy=panel==1 and (path==1 and point.rxY1 or point.rxY2) or point.lqY
           if px and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
             local color=point.colors[index]
@@ -388,8 +524,11 @@ local function compactDashboard(w,W,H)
   rect(p,footer-3,W-p*2,1,C.text)
   for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-p*2)/4
-    text(x,footer+2,field[3],SMLSIZE+CENTER,C.muted)
-    text(x,footer+17,field[1]>0 and value(w.sensors[field[1]]) or '--',SMLSIZE+CENTER)
+    if field[1]==5 then drawRFMode(w,x,footer+2,(W-p*2)/4,true)
+    else
+      text(x,footer+2,field[3],SMLSIZE+CENTER,C.muted)
+      text(x,footer+17,field[1]>0 and value(w.sensors[field[1]]) or '--',SMLSIZE+CENTER)
+    end
   end
 end
 
@@ -413,15 +552,15 @@ local function dashboard(w,W,H)
   text(mid,top,'Receiver Signal',small,C.muted)
   local q=w.sensors[1]
   text(p,top+22,value(q)..'%',big,displayColor(w,1))
-  local two=w.sensors[3].current and type(w.sensors[3].value)=='number'
+  local two,selected=antennaLayout(w)
   local antWidth=(W-mid-p)/(two and 2 or 1)
   for a=1,two and 2 or 1 do
-    local s=w.sensors[a+1]
-    local x=mid+(a-1)*antWidth
-    text(x,top+30,value(s),medium,displayColor(w,a+1))
-    text(x,top+(wide and 83 or 64),'ANT '..a,small,C.muted)
+    local index=(two and a or selected)+1
+    local x=two and (mid+(a-1)*antWidth) or ((mid+W-p)/2)
+    local align=two and 0 or CENTER
+    drawAntenna(w,index,x,top+30,medium,not two,8,displayColor(w,index))
+    text(x,top+(wide and 83 or 64),'ANT '..(index-1),small+align,C.muted)
   end
-  text(W-p,top+(wide and 83 or 64),'dBm',small+RIGHT,C.muted)
   local barY=chartTop-22
   local warning,critical,modeLabel=thresholds(w)
   -- Leave clear space below the small-font descenders and above the divider.
@@ -439,7 +578,7 @@ local function dashboard(w,W,H)
   preparePlot(w,W,H,left,right,chartTop+28,plotH-38,chartTop+plotH+46,plotH-38)
   for panel=1,2 do
     local ytop=chartTop+(panel-1)*(plotH+18)
-    text(p,ytop,panel==1 and 'ANT 1 solid / ANT 2 dashed - dBm' or 'Link Quality - %',small,C.muted)
+    text(p,ytop,panel==1 and (two and 'ANT 1 solid / ANT 2 dashed - dBm' or 'Receiver Signal - dBm') or 'Link Quality - %',small,C.muted)
     local y0=ytop+28
     local h=plotH-38
     local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
@@ -448,17 +587,18 @@ local function dashboard(w,W,H)
       rect(left,yy,right-left,1,C.rule)
       text(left-4,yy-7,string.format('%.0f',high-n*(high-low)/2),small+RIGHT,C.muted)
     end
-    for antenna=1,panel==1 and 2 or 1 do
+    for antenna=1,(panel==1 and two) and 2 or 1 do
       local px,py
       for _,point in ipairs(w.plotHistory or {}) do
-        local index=panel==1 and antenna+1 or 1
+        local path=two and antenna or selected
+        local index=panel==1 and path+1 or 1
         local v=point[index]
         local x=point.screenX
         if v and x<=right then
-          local yy=panel==1 and (antenna==1 and point.rxY1 or point.rxY2) or point.lqY
+          local yy=panel==1 and (path==1 and point.rxY1 or point.rxY2) or point.lqY
           if px and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
-            local color=point.colors[panel==1 and antenna+1 or 1]
+            local color=point.colors[index]
             if color==C.text then color=panel==1 and C.accent or C.blue end
             if antenna==1 then line(math.floor(px),math.floor(py),math.floor(x),math.floor(yy),SOLID,color)
             else line(math.floor(px),math.floor(py),math.floor((px+x)/2),math.floor((py+yy)/2),SOLID,color) end
@@ -474,9 +614,12 @@ local function dashboard(w,W,H)
   rect(p,footer-5,W-2*p,2,C.text)
   for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-2*p)/4
-    text(x,footer+3,field[2],small+CENTER,C.muted)
-    local shown=field[1]>0 and value(w.sensors[field[1]]) or '--'
-    text(x,footer+23,shown..field[4],(wide and MIDSIZE or small)+CENTER)
+    if field[1]==5 then drawRFMode(w,x,footer+3,(W-2*p)/4,false)
+    else
+      text(x,footer+3,field[2],small+CENTER,C.muted)
+      local shown=field[1]>0 and value(w.sensors[field[1]]) or '--'
+      text(x,footer+23,shown..field[4],(wide and MIDSIZE or small)+CENTER)
+    end
   end
 end
 
@@ -499,7 +642,7 @@ local function refresh(w,event,touch)
   dashboard(w,width,height)
 end
 return {
-  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0}}, create=create,
+  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}}}, create=create,
   update=function(w,options) w.options=defaults(options);scan(w) end,
   refresh=refresh, background=sample
 }

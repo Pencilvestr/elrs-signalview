@@ -2,7 +2,7 @@
 local app=loadScript('/WIDGETS/SignalView/main.lua')()
 local cases={
   {'TPWR',6,'TX POWER','TX mW','250 mW','250'},
-  {'RFMD',5,'RF MODE','RF Mode','29','29'},
+  {'RFMD',5,'RF MODE','RF Mode','500Hz','500Hz'},
   {'RSNR',4,'RX SNR','SNR dB','8 dB','8'},
   {'TQly',7,'DOWNLINK','DL %','97%','97'},
   {'TRSS',8,'DL RSSI','DL dBm','-75 dBm','-75'},
@@ -26,6 +26,7 @@ return function()
     if index>=14 then options={} end
     local w=app.create({x=0,y=0,w=800,h=480},options)
     w.moduleVersion='test'
+    w.moduleMajor=4
     local values={99,-62,-65,8,29,250,97,-75,6,2}
     for i,s in ipairs(w.sensors) do s.value=values[i];s.current=true end
     if index==12 then w.sensors[8].current=false end
@@ -42,7 +43,7 @@ return function()
       local lines=0
       lcd={drawText=function(x,y,str)
         if y>=size[2]-(size[1]>=600 and 64 or 36) then seen[str]=(seen[str] or 0)+1 end
-      end,drawFilledRectangle=function() end,drawLine=function() lines=lines+1 end}
+      end,drawFilledRectangle=function() end,drawLine=function() lines=lines+1 end,sizeText=original.sizeText}
       w.zone.w=size[1];w.zone.h=size[2]
       local savedW,savedH=LCD_W,LCD_H
       LCD_W,LCD_H=size[1],size[2]

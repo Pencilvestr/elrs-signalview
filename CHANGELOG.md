@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0 — pending release approval
+
+- Infer one or two usable antenna telemetry paths after a one-second detection period.
+- Add Auto / Single / Dual antenna display selection.
+- Center single-antenna RSSI, identify the selected antenna, and show one solid history trace.
+- Retain detected dual layout through telemetry loss; filter zero/invalid RSSI from main readings and history.
+- Maintainer confirmed the 0.3.0-dev.3 build working on the TX16S MK3.
+- Show readable ELRS 3.x/4.x RF modes with modulation and band in the MK3 split footer cell.
+- Use raw RFMD for unknown versions/modes; mark ambiguous 3.x bands as `Band ?`.
+- Show readable RF-mode names on compact screens within the existing footer spacing; RSSI threshold policy is unchanged.
+- Place a muted dBm unit beside each antenna reading; center the full reading/unit group in single-antenna view.
+- Refresh screenshots and the README animation, starting disconnected before showing connection and changing signals.
+
 ## 0.2.0 — 2026-10-23
 
 First non-beta release. Includes the selectable ELRS footer from beta.3.

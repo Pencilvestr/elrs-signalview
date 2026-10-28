@@ -12,11 +12,11 @@ The maintainer tested a TX16S MK3 with its internal ELRS 4.x module and an activ
 
 The maintainer subsequently installed the local SignalView spacing fix and reported it working as expected on a TX16S MK3 running EdgeTX 2.12.5 and internal ELRS 4.0.0. This is the functional change included in 0.2.0-beta.2. The native-source-picker footer was subsequently tested on the same MK3 setup and reported working, with slight lag. This report is included in beta.3; the cause of lag has not been measured. The receiver model, receiver firmware, test duration and flight conditions have not been recorded. No formal flight qualification or extended hardware endurance claim is made.
 
-The 0.2.0 optimization has not yet been confirmed on physical hardware. See [performance measurements and limits](PERFORMANCE.md).
+On October 28, 2026, the maintainer reported the exported 0.3.0-dev.3 build working correctly on the radio. The documented setup is the TX16S MK3 with EdgeTX 2.12.5 and internal ELRS 4.0.0; versions were not separately restated for this latest test. Version 0.3.0 changes only the Lua version comment from that tested build. This confirms reported functionality, not a measured performance improvement or flight qualification. See [performance measurements and limits](PERFORMANCE.md).
 
 ### Native simulator
 
-The suite uses official EdgeTX 2.12.5 Windows simulator libraries for TX16S MK3 (800Ã—480), TX16S (480Ã—272), TX15 (480Ã—320), NV14 (320Ã—480) and PA01 (320Ã—240). It boots the firmware in isolated processes and takes real RGB565 framebuffer captures. It does not rely on desktop screen capture.
+The suite uses official EdgeTX 2.12.5 Windows simulator libraries for TX16S MK3 (800×480), TX16S (480×272), TX15 (480×320), NV14 (320×480) and PA01 (320×240). It boots the firmware in isolated processes and takes real RGB565 framebuffer captures. It does not rely on desktop screen capture.
 
 The release's machine-readable [verification record](verification.json) includes the exact widget SHA-256, target results and supplemental image checks. It is a local verification record, not a GitHub Actions run.
 
@@ -57,6 +57,19 @@ python tests/native/worker.py --radio tx16smk3 --run-dir tests/native/endurance 
 ```
 
 The settings probe seeds non-default fixture settings, lets native EdgeTX save them, then reopens that saved profile in a second process. It tests persistence, not typing through the settings editor. The zone probe uses one widget with the top bar off. The endurance worker is separate from the normal runner's 75-second timeout.
+
+## Development RF-mode checks
+
+The 0.3.0 development split cell has separate tests for all 41 named 3.x/4.x entries, unknown versions/indices, stale/missing data, a malformed index, and live mode changes. Native text metrics check each of four selectable footer slots for clipping/overlap, including Full and dual-band labels. Test steps run in bounded callbacks.
+
+```powershell
+python tests/native/worker.py --radio tx16smk3 --run-dir tests/native/results/rf-development/verified-cases --rf-tests --rf-preview > tests/native/results/rf-verified-cases.log
+python tests/native/worker.py --radio pa01 --run-dir tests/native/results/rf-development/compact-approved --rf-tests --rf-preview > tests/native/results/rf-compact-approved.log
+python tests/native/worker.py --radio pa01 --run-dir tests/native/results/rf-development/final-v3 --rf-preview --elrs-major 3 > tests/native/results/rf-final-v3.log
+python tests/native/check_rf.py
+```
+
+These checks validate version-dependent display logic, not a physical ELRS 3.x link. The approved compact treatment is included in the install package. The same RF test cases can run on a compact target with `--radio pa01` to check native font bounds and readable labels in all four slots.
 
 ## Community hardware test checklist
 

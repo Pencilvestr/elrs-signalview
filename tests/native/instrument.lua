@@ -19,6 +19,14 @@ local function observe(w,event,touch)
   if w._thresholdTest and w._thresholdTest() then w._thresholdTest=nil end
   if w._smoothTest and w._smoothTest() then w._smoothTest=nil end
   if not w._thresholdTest and not w._smoothTest and w._footerTest and w._footerTest() then w._footerTest=nil end
+  if not w._thresholdTest and not w._smoothTest and not w._footerTest and w._rfTest then
+    if w._rfTest() then w._rfTest=nil end
+    return
+  end
+  if not w._thresholdTest and not w._smoothTest and not w._footerTest and w._antennaTest then
+    if w._antennaTest() then w._antennaTest=nil end
+    return
+  end
   if not w._thresholdTest and not w._smoothTest and not w._footerTest and w._equivalenceTest then
     if w._equivalenceTest() then w._equivalenceTest=nil end
     -- The oracle already executes a renderer. Do not spend a second widget's
@@ -35,7 +43,7 @@ local function observe(w,event,touch)
       row[#row+1]=s.name..'='..tostring(s.value)..','..s.state
     end
     local last=w.lastSample or (w.history and w.history[#w.history])
-    if last then row[#row+1]='COLORS='..table.concat(last.colors,',') end
+    if last then row[#row+1]='COLORS='..tostring(last.colors[1])..','..tostring(last.colors[2])..','..tostring(last.colors[3]) end
     row[#row+1]='HIST='..tostring(w.lastSample and 1 or (w.history and #w.history or 0))..',PLOT='..tostring(w.plotHistory and #w.plotHistory or 0)
     row[#row+1]='VERSION='..tostring(w.moduleVersion)
     print(table.concat(row,'|'))
@@ -57,10 +65,17 @@ local function create(zone,options)
   local fields={}
   for _,field in ipairs(w.options.footer) do fields[#fields+1]=field[1] end
   print('FOOTERCONFIG|'..table.concat(fields,'|'))
+  print('ANTENNACONFIG|'..w.options.Antennas)
   if not profiling then
     w._thresholdTest=loadScript('/WIDGETS/LabTest/threshold-tests.lua')()
     w._smoothTest=loadScript('/WIDGETS/LabTest/smoothing-tests.lua')()
     w._footerTest=loadScript('/WIDGETS/LabTest/footer-tests.lua')()
+    if loadScript('/WIDGETS/LabTest/rf-enabled.lua')() then
+      w._rfTest=loadScript('/WIDGETS/LabTest/rf-tests.lua')()
+    end
+    if loadScript('/WIDGETS/LabTest/antenna-enabled.lua')() then
+      w._antennaTest=loadScript('/WIDGETS/LabTest/antenna-tests.lua')()
+    end
     if loadScript('/WIDGETS/LabTest/reference-enabled.lua')() then
       w._equivalenceTest=loadScript('/WIDGETS/LabTest/equivalence-tests.lua')()
     end
