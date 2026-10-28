@@ -65,12 +65,13 @@ This is a running list of setups reported working on physical radios. Reports de
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
 | RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer reported 0.3.0-dev.3 working correctly on the radio, including the updated UI. Firmware versions are from the previously documented setup. |
+| PA01 | ELRS 4.1.0; module unspecified | Unknown | Community tester reported the current published release (0.3.0) working correctly. Report confirmed by the maintainer. |
 
 The 0.3.0 release uses the same widget behavior as the tested 0.3.0-dev.3 build. Receiver model, receiver firmware and test duration have not been recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
 
 ### Simulator coverage
 
-These targets passed native EdgeTX **2.12.5** tests. They are listed separately until physical-radio reports are available.
+These targets passed native EdgeTX **2.12.5** tests. Physical-radio reports are recorded above; the simulator firmware version does not identify the firmware used by community testers.
 
 | Radio / target | Resolution | Evidence |
 | --- | --- | --- |
@@ -78,7 +79,7 @@ These targets passed native EdgeTX **2.12.5** tests. They are listed separately 
 | TX16S | 480 × 272 | Native simulator only |
 | TX15 | 480 × 320 | Native simulator only |
 | NV14 | 320 × 480 | Native simulator only |
-| PA01 | 320 × 240 | Native simulator only |
+| PA01 | 320 × 240 | Native simulator; community physical-radio report above |
 
 RF-mode names support **ELRS 3.x and 4.x**. Automatic RSSI thresholds remain **ELRS 4.x only**; use Manual or Off for 3.x. Unknown versions/modes retain a raw RFMD label, and ambiguous 3.x bands display `Band ?`. See [testing evidence and limits](docs/TESTING.md).
 
@@ -98,4 +99,4 @@ Released under the [MIT License](LICENSE). This is an independent community proj
 
 ## Support
 
-[Support the project on Ko-fi](https://ko-fi.com/pencilvestr).
+[![Support SignalView on Ko-fi — help support ongoing development and radio testing.](docs/assets/support-signalview.svg)](https://ko-fi.com/pencilvestr)
