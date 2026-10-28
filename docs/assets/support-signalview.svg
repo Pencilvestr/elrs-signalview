@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="154" viewBox="0 0 560 154" role="img" aria-labelledby="title description">
+  <title id="title">Support SignalView on Ko-fi</title>
+  <desc id="description">Help support ongoing development and radio testing.</desc>
+  <rect width="560" height="154" fill="#0d1715"/>
+  <rect width="4" height="154" fill="#76d9a4"/>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="28" y="48" fill="#f3f8f5" font-size="26" font-weight="600">Support SignalView</text>
+    <text x="28" y="83" fill="#b7c9c0" font-size="20">Help support ongoing</text>
+    <text x="28" y="111" fill="#b7c9c0" font-size="20">development and radio testing.</text>
+    <rect x="338" y="57" width="194" height="44" rx="6" fill="#76d9a4"/>
+    <text x="435" y="86" text-anchor="middle" fill="#10231b" font-size="20" font-weight="600">Support on Ko-fi</text>
+  </g>
+</svg>
