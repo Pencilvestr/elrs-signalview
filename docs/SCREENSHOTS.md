@@ -2,66 +2,88 @@
 
 [Back to README](../README.md)
 
-All dashboard images below are actual native EdgeTX 2.12.5 simulator captures. Telemetry and the reported module version are injected test data, not live RF measurements. They illustrate layout and state handling, not real-world signal limits. No physical-radio photographs were supplied for this documentation.
+These images show the **0.4.0** interface, captured from its development candidate in the native EdgeTX **2.12.5** simulator. Telemetry and module-version responses are synthetic. They illustrate the UI, not measured RF performance. Exact capture versions and source hashes are recorded in the image manifest.
 
 ## Animated dashboard
 
-![Changing telemetry and scrolling history](images/signalview-demo.gif)
+![Disconnected startup, connection and changing signal history](images/signalview-demo.gif)
 
-A continuous 40-second native MK3 simulator capture at four frames per second. It begins with no current telemetry and empty history, then connects, qualifies both antenna paths, and shows synthetic receiver signal and Link Quality falling into amber and red before recovering. Transmit power, readable RF mode, receiver SNR and downlink quality also change. RF-mode changes are scripted demonstration steps, not automatic module behavior. The history uses normal widget sampling and drawing. The loop visibly returns to its disconnected starting state; no zero-valued signal readings are fabricated.
+The 40-second loop starts with no current telemetry and empty history. It connects, qualifies both antenna paths, and shows signal degradation and recovery. Footer readings also change. Scripted RF-mode changes demonstrate the labels; they are not automatic module behavior.
 
-Reproduce with the native worker's `--demo` option, then run `python tools/build_demo.py`. The GIF uses a shared palette derived from the captured frames; no readings or graph lines are drawn separately.
+## Themes
 
-## MK3: normal, warning and degraded
+Dark, the default:
 
-![No active telemetry connection](images/mk3-no-connection.png)
+![Dark theme](images/theme-dark.png)
 
-![Normal telemetry](images/mk3-normal.png)
+Rich Ivory:
 
-![Single-antenna view with adjacent dBm unit](images/mk3-single.png)
+![Rich Ivory theme](images/theme-ivory.png)
 
-![Amber warning telemetry](images/mk3-warning.png)
+White, with a neutral off-white background:
 
-![Red degraded telemetry](images/mk3-critical.png)
+![White theme](images/theme-white.png)
 
-## MK3: stale data and full history
+## History selection
 
-![Stale telemetry produces missing current readings](images/mk3-stale.png)
+Both graphs are shown in the theme images above. The single-graph choices retain the main readings and footer, enlarge the selected graph and include midpoint scale labels.
 
-![Normal one-widget view after the history window fills](images/mk3-history.png)
+Receiver Signal:
+
+![Receiver Signal history only](images/history-receiver.png)
+
+Link Quality:
+
+![Link Quality history only](images/history-quality.png)
+
+## Connection and warning states
+
+No current telemetry:
+
+![Disconnected dashboard](images/mk3-no-connection.png)
+
+Amber warning:
+
+![Amber warning state](images/mk3-warning.png)
+
+Red degraded readings:
+
+![Red degraded state](images/mk3-critical.png)
+
+Complete graph-data loss:
+
+![Frozen history with an elapsed-loss timer](images/mk3-stale.png)
+
+The frozen graph remains available after the live readings become unavailable. It resumes with a break when telemetry returns. The right-edge label remains `Now`.
 
 ## Smaller landscape screens
 
-TX16S, 480 × 272:
+TX16S, 480 × 272, with the approved separation between history graphs:
 
-![TX16S compact layout](images/tx16s.png)
+![TX16S layout](images/layout-tx16s.png)
 
-TX15, 480 × 320:
+TX15, 480 × 320, with the same added separation:
 
-![TX15 compact layout](images/tx15.png)
+![TX15 layout](images/layout-tx15.png)
 
-PA01, 320 × 240:
+PA01, 320 × 240, retaining its compact two-graph layout:
 
-![PA01 compact layout](images/pa01.png)
+![PA01 layout](images/layout-pa01.png)
 
 ## Portrait screen
 
-NV14, 320 × 480:
+NV14, 320 × 480, with added graph separation and midpoint scale labels:
 
-![NV14 portrait layout](images/nv14.png)
+![NV14 portrait layout](images/layout-nv14.png)
 
 ## Settings
 
-![Native EdgeTX settings editor with non-default persistence-test values](images/settings.png)
+![Native RSSI mode dropdown setting saved as Manual](images/settings.png)
 
-The settings editor image is from the test observer and shows its temporary `LabTest` title, non-default thresholds and a two-second recovery setting. The production picker name is SignalView; the defaults are documented in [Settings](SETTINGS.md). The Footer 1 field uses the native source picker.
+This capture uses non-default persistence-test settings and the test observer's temporary `LabTest` title. The production widget is named **SignalView**. Theme appears first; History follows Antennas at the bottom. RSSI mode, Theme, Antennas and History use native dropdowns. Footer 1–4 use EdgeTX's source picker. See [Settings](SETTINGS.md) for defaults and upgrade notes.
 
-## Footer source picker
+## Capture provenance
 
-![Native EdgeTX source picker](images/footer-source-picker.png)
+Images retain their native dimensions. The [image manifest](images/manifest.json) records source hashes, image hashes, simulator version and capture provenance; it also retains entries for older reference assets not displayed here.
 
-The picker lists radio sources and discovered telemetry. Choose a supported ELRS sensor without a minimum/maximum suffix. The temporary LabTest title belongs to the test observer.
-
-## Updating screenshots
-
-Use fresh native results whenever the layout or display behavior changes. Preserve their native dimensions. Record firmware, target, source hash and whether telemetry was synthetic in `images/manifest.json`. Do not label an HTML concept mockup as a radio or firmware screenshot.
+The GIF uses a shared palette derived from native captures. No readings or graph traces are drawn onto the images afterward. Reproduce the animation with the native worker's `--demo` option and `python tools/build_demo.py`. See [Testing](TESTING.md) for the simulator workflow.

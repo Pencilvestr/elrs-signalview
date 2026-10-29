@@ -42,6 +42,12 @@ For an update with the same settings schema, replace `main.lua` and restart the 
 
 When release notes announce a settings-schema change, remove and re-add the widget instance so EdgeTX initializes the new options. Record your old settings first. A compiled `main.luac` from an earlier installation may be removed from the widget folder if EdgeTX appears to keep loading an old build; do not remove unrelated scripts or files.
 
+### Upgrading to 0.4.0
+
+From 0.3.0 or an earlier build without Theme first, record the settings and remove the old widget instance before upgrading; add it again after replacing the Lua and restarting. Theme moved to the first option, and EdgeTX stores settings by position.
+
+From a recent build with Theme already first, replace the Lua and restart. The appended History option defaults to Both without shifting existing settings. RSSI mode changed from text to a dropdown: that field initializes to Auto, so reselect Manual or Off if needed. The other settings keep their positions.
+
 ### Migrating from ELRS Diag
 
 The development widget was installed at `/WIDGETS/ELRSDiag/main.lua` and appeared as `ELRS Diag`. SignalView uses a new directory and picker name. Remove the old widget from the model, add SignalView, and re-enter any custom thresholds. The old directory can be kept as an inactive backup. Avoid keeping both widgets active because version discovery uses the shared CRSF Lua queue briefly.
@@ -55,7 +61,7 @@ Remove propellers or disconnect the motor before testing.
 3. Compare the detected version with the official ELRS tool. A missing version reply leaves `ELRS LINK` in the header.
 4. Let the history fill for at least 30 seconds and continue across several rollovers.
 5. Change a widget setting and restart the radio to verify persistence.
-6. Turn the receiver off, wait for EdgeTX to mark telemetry stale, then turn it back on. Verify hidden current numbers, graph gaps and recovery.
+6. Turn the receiver off and wait for EdgeTX to mark telemetry stale. In 0.4.0, verify missing current numbers, frozen history and the elapsed-loss timer. Reconnect and check that live history resumes with a break.
 7. Test both full-screen and single-widget views. Leave it running while checking for errors or slowing controls.
 
 Warning colors can be exercised using temporary Manual thresholds at the bench; restore the intended mode/settings afterward. These tests do not replace a range test or your normal flight-safety procedures.
@@ -66,4 +72,4 @@ Restore the previous `main.lua`, restart, and restore its recorded widget settin
 
 ## Footer settings
 
-Record existing settings before upgrading. Restart and re-add SignalView, restore thresholds, then select Footer 1–4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.
+Follow the upgrade procedure for your current build, then select Footer 1–4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.

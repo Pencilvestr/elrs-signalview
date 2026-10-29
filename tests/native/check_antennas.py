@@ -20,7 +20,7 @@ def main():
         checks[name + '_current_source'] = (RUNS / name / 'sd/WIDGETS/SignalView/main.lua').read_bytes() == source
     log = (RUNS / 'cases.log').read_text(encoding='utf-8')
     rows = re.findall(r'^ANTENNA\|([^|]+)\|(true|false)$', log, re.M)
-    checks['58_unique_scenarios'] = len(rows) == len(set(name for name, _ in rows)) == 58
+    checks['104_unique_scenarios'] = len(rows) == len(set(name for name, _ in rows)) == 104
     checks['all_scenarios_passed'] = all(result == 'true' for _, result in rows)
     for name in ['single1', 'single2']:
         checks[name + '_full_history_capture'] = (RUNS / name / 'antenna-full-history.png').exists()

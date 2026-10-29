@@ -7,12 +7,12 @@
 | Widget not listed | Confirm `/WIDGETS/SignalView/main.lua`, restart, and look for SignalView rather than ELRS Diag. |
 | Blank normal area | Use one widget, disable the top bar, or open full screen. Small areas intentionally have no prompt. |
 | `--` readings | Confirm the receiver connection and discover sensors in EdgeTX. Check the names in the telemetry reference. Wait for the periodic rescan. |
-| Numbers disappear after receiver power-off | Expected after EdgeTX marks the source stale. History gaps reflect unavailable data. |
+| Numbers disappear after receiver power-off | Expected after EdgeTX marks the source stale. Local 0.4.0 development freezes history when all main graph sources are unavailable. |
 | Second antenna absent | Check whether 2RSS is current/numeric. The widget cannot identify antenna hardware independently. |
 | RSSI appears muted | Check Auto mode support, RFMD freshness, module major version, and threshold ordering. |
 | `RSSI auto unavailable` | RFMD is missing, stale or absent from the verified 4.x table. Use confirmed Manual thresholds. |
 | `Auto needs ELRS 4.x` | A different major version was detected. Manual mode is available; automatic 3.x decoding is not implemented. |
-| `Use Auto/Manual/Off` | Enter one of those three names in the RSSI mode text setting. |
+| `Use Auto/Manual/Off` | Select Auto, Manual or Off under RSSI mode. Version 0.4.0 uses a dropdown and defaults empty/uninitialized settings to Auto. Older builds or firmware without CHOICE use a text field accepting those names. |
 | `RSSI settings invalid` | RX red must be more negative than RX amber. |
 | `Check LQ settings` | LQ red must be lower than LQ amber. |
 | Header stays `ELRS LINK` | No usable module reply arrived during the discovery window. Restart/recreate the widget to retry; compare with the official ELRS tool. Avoid another CRSF-querying widget during discovery. |

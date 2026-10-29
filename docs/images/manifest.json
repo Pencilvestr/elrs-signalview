@@ -21,10 +21,10 @@
         800,
         480
       ],
-      "sha256": "afd9c280ad43a3c17e3c1c949a1c7d4a511510bb32d9ce4466e3477dc757db1b",
-      "origin": "0.3.0 native simulator run: tx16smk3/04c-critical.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "sha256": "9ec78123d6149e888fc76142d885cf9c8684b612ba5cb9cc66290822d757c518",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/tx16smk3/04c-critical.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -48,9 +48,9 @@
         480
       ],
       "sha256": "ce5a1e09c59b17efac7d18c00f2c4512e842fe9a74f5d34c8f4048df7d644bf8",
-      "origin": "0.3.0 native simulator run: demo/demo-000.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/tx16smk3/03-no-data-fullscreen.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -60,10 +60,10 @@
         800,
         480
       ],
-      "sha256": "9c7fccaf7dc7bbcabe2c6108e15743fd0f640114402e597946a712d18e9218d9",
-      "origin": "0.3.0 native simulator run: tx16smk3/04-connected.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "sha256": "d702e2245ed4274d250f2ed27e91c6b69eeb9e425003957a923893fb13fec877",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/tx16smk3/04-connected.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -86,10 +86,10 @@
         800,
         480
       ],
-      "sha256": "d7a05c22c491a0c87334626459bf8278bf8b16a1c14a589144a48609fafb3d34",
-      "origin": "0.3.0 native simulator run: tx16smk3/06-stale.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "sha256": "facd0d5408174b5b0dce53882e4945db0288dccf19e85baf42d3b91ec5432db3",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/tx16smk3/06-stale.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -99,10 +99,10 @@
         800,
         480
       ],
-      "sha256": "e4c8b8cf6176c3033285ec55398d0a7357a9dd7bbfc3154c3d82bc0194c88836",
-      "origin": "0.3.0 native simulator run: tx16smk3/04b-warning.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "sha256": "ba17d88e5860252b8b10a12cd1fff35fd1d24d06b64b18501970c524fac3e877",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/tx16smk3/04b-warning.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -138,27 +138,10 @@
         800,
         480
       ],
-      "sha256": "91553e2e441b25d8059fdaba631a03713a2e8bff740636b9345d3b2eb598f5cf",
-      "origin": "0.3.0 native simulator run: release-settings/settings-saved.png",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
-      "synthetic_telemetry": true,
-      "synthetic_module_version": true
-    },
-    {
-      "file": "signalview-demo.gif",
-      "size": [
-        800,
-        480
-      ],
-      "frames": 145,
-      "captured_frames": 160,
-      "starts_disconnected": true,
-      "duration_ms": 40000,
-      "sha256": "251234ef7007ba5bf570adf2788a61b3c181ee6f8d0b0900996a15415e00e286",
-      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
-      "captured_date": "2026-10-28",
-      "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "sha256": "4c98dbbc78a59a0f0c1fd3a43a995d7294344abfdaf31cd7c94ffb454eada7da",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/rssi-choice-settings/settings-reopened.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     },
@@ -185,6 +168,140 @@
       "origin": "0.3.0 native simulator run: tx16s/04-connected.png",
       "captured_date": "2026-10-28",
       "source_sha256": "7989c622eb6c79b82bf1b5b74c8247ffcfe9daf844aae3a98ea782ef4f31ad50",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "history-quality.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "b2327a92622b85cccef97f0eb1910322baf2a23a4618e68d50029098ed35da7d",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/history-quality/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "history-receiver.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "e9258820922fb232b4c7997b2f942e18655c8953c283fa3cf9c78a4b3002f571",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/history-receiver/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "layout-nv14.png",
+      "size": [
+        320,
+        480
+      ],
+      "sha256": "1afa4d3cb73aabfd628989002974322e4acb03caed4577d8ba9fab085775b58f",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/layout-nv14/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "layout-pa01.png",
+      "size": [
+        320,
+        240
+      ],
+      "sha256": "51ce3fe3c1e5e2802756f444c41662963a2d3ef3074482b068bf65be47f4f053",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/layout-pa01/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "layout-tx15.png",
+      "size": [
+        480,
+        320
+      ],
+      "sha256": "7b839b688b2df9f271e98e0b3c7f608e02c2d4d01d148a2459895ea9fdb00b7d",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/layout-tx15/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "layout-tx16s.png",
+      "size": [
+        480,
+        272
+      ],
+      "sha256": "b55bed25a3e14771b629848bdf58bff82b1e027df7700ddbda942d3fdf04bd53",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/layout-tx16s/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "theme-dark.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "3846f2e4051117c22f9df9bfa41927d63e761300f2465ce152ffcaa09ef01f50",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/theme-dark/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "theme-ivory.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "c1bde2e2600086afdebd53a04241c1e0bf7a6b67760fea6fd49557ef815490d0",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/theme-ivory/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "theme-white.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "f32e1fa3b2ce8dec6b5a5bcfd5af2c1941a1f1763779fde8ee7f9b32536c970c",
+      "origin": "0.4.0-dev.3 native simulator: tests/native/results/readme-preview/theme-white/theme-active-history.png",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true
+    },
+    {
+      "file": "signalview-demo.gif",
+      "size": [
+        800,
+        480
+      ],
+      "frames": 147,
+      "captured_frames": 160,
+      "starts_disconnected": true,
+      "duration_ms": 40000,
+      "sha256": "ddbdce7002f931e0fe3f306971aca366a3a441bf8781a6c5a7ca58f8234469af",
+      "origin": "Continuous native MK3 simulator --demo capture; shared GIF palette",
+      "captured_date": "2026-10-29",
+      "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
     }

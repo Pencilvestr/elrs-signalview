@@ -22,6 +22,29 @@ function sample() tick=tick+20;w.options.Recover=0;w.scanTime=tick;app.backgroun
 p=sample()
 end,
 function()
+app.update(w,{['RSSI mode']=1});p=sample()
+assert(w.options.RSSImode==0 and p.colors[2]==amber,'Auto dropdown classification')
+print('RSSIMODE|auto|true')
+end,
+function()
+app.update(w,{['RSSI mode']=2,['RX amber']=-90,['RX red']=-100});p=sample()
+assert(w.options.RSSImode==1 and p.colors[2]==amber,'Manual dropdown classification')
+print('RSSIMODE|manual|true')
+end,
+function()
+app.update(w,{['RSSI mode']=3});p=sample()
+assert(w.options.RSSImode==2 and p.colors[2]==white,'Off dropdown classification')
+print('RSSIMODE|off|true')
+end,
+function()
+app.update(w,{['RSSI mode']='   '});p=sample()
+assert(w.options.RSSImode==0 and p.colors[2]==amber,'Blank fallback must be Auto')
+print('RSSIMODE|blank_defaults_auto|true')
+app.update(w,{['RSSI mode']=0});p=sample()
+assert(w.options.RSSImode==0 and p.colors[2]==amber,'Uninitialized choice must be Auto')
+app.update(w,{});p=sample()
+end,
+function()
 checks.auto_500Hz=p.colors[2]==amber and p.colors[3]==amber
 original=p.colors[2]
 values[5]=27;p=sample()
