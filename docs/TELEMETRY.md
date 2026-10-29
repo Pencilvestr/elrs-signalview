@@ -25,9 +25,9 @@ All ten listed fields can be selected in the footer. Its four columns remain cen
 
 Each displayed antenna reading has its own smaller, muted `dBm` unit beside the number. In single-antenna view, the reading and unit are centered together above the antenna label. Unit placement does not change warning colors, graph positions or footer spacing.
 
-Auto requires one second of continuous current, finite negative RSSI per antenna. Zero placeholders do not qualify. Once both paths have qualified, the dual layout stays established for the widget instance, including telemetry loss and reconnection. A missing reading shows `--` and leaves a history gap. Equal readings and weak negative readings remain valid.
+Auto requires overlapping one-second evidence of current, finite negative RSSI on both paths before first showing dual antennas. Zero placeholders do not qualify. Dual layout survives partial dropouts and remains unchanged while history is frozen. In 0.4.0, complete loss of all main graph sources enables reassessment: after reconnection, five continuous seconds of exactly one usable RSSI path selects single view. Both paths qualifying for one second retains/restores dual view. A missing reading shows `--` and leaves a history gap. Equal readings and weak negative readings remain valid.
 
-This infers available telemetry paths, not physical antenna count or antenna health. Switching receivers within the same model cannot reliably reset this inference: restart/recreate the widget or choose an explicit display mode. The single view selects ANT 2 when only that path qualifies; it labels the selected path and draws that antenna's own history, never a merged history of both antennas. Select ANT in the footer to see the antenna index reported by EdgeTX; it does not control the layout. Raw footer readings remain available independently of the main-display filtering.
+This infers available telemetry paths, not physical antenna count, receiver identity or antenna health. Reassessment can also select single view when a dual receiver returns with one unavailable path; select Dual to keep both slots visible. Published 0.3.0 requires widget restart/recreation or an explicit mode to clear prior dual detection. The single view selects ANT 2 when only that path qualifies; it labels the selected path and draws that antenna's own history, never a merged history of both antennas. Select ANT in the footer to see the antenna index reported by EdgeTX; it does not control the layout. Raw footer readings remain available independently of the main-display filtering.
 
 ## History
 
@@ -36,7 +36,15 @@ This infers available telemetry paths, not physical antenna count or antenna hea
 - Storage: one latest diagnostic sample and up to 32 plot buckets; no duplicate high-rate raw buffer.
 - Display: one bucket per second per series, retaining that bucket's lowest numeric sample and its original color.
 - Draw bound: at most 32 plot buckets, including the predecessor needed to clip the line at the left edge.
-- Missing/stale data creates gaps. A missing reading marks that series' whole one-second bucket as a gap.
+- A missing reading marks that series' whole one-second bucket as a gap while another main graph source remains available.
+
+### Frozen history
+
+Once graph data has been recorded, losing all three main sources (Link Quality and both RSSI paths) freezes the existing history and its recorded colors. No replacement buckets are added during the outage. Startup without data does not count as a loss. A valid 0% Link Quality reading is still data; a missing second antenna alone does not freeze the graphs.
+
+The header reads `Link data lost`. The unavailable RSSI-threshold line becomes `History frozen - N s`, measuring time since the widget first observed every main graph source unavailable. Live readings continue to follow EdgeTX source availability and show `--` when unavailable. The time labels remain `-30 s`, `-15 s` and `Now`; while frozen, they describe the retained window ending at its final recorded bucket, not the advancing wall clock.
+
+Freezing follows EdgeTX's current/stale flags, so it may occur after the last received packet. It cannot distinguish return-telemetry loss from total RC-link loss or confirm receiver failsafe. One remaining valid main source resumes recording. Reconnection starts a separate line segment; the live 30-second window then advances normally, so old data outside that window expires. After a long outage the old history can disappear on reconnection. History stays in memory only and is cleared when the widget/radio restarts.
 
 The line joins bucket values; it is not a packet-by-packet trace or exact event timestamp. It preserves short low-value dips but does not expose every recovery inside the same second. No history is written to disk. Switching between supported widget and full-screen views keeps the same instance/history; model changes, restarts and re-adding the widget start a new history.
 

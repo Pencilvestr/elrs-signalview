@@ -1,91 +1,116 @@
 # ELRS SignalView
 
-A full-screen RC-link dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
+A receiver-signal and Link Quality dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Version 0.3.0.**
+**Version 0.4.0.**
 
-![SignalView showing changing signal levels, alert colors and scrolling history](docs/images/signalview-demo.gif)
+[Download SignalView](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.4.0/elrs-signalview-0.4.0.zip) · [Release notes](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.4.0)
 
-*Native EdgeTX 2.12.5 simulator capture with synthetic telemetry. The 40-second loop starts disconnected, establishes a link, then shows signal degradation and recovery while the history fills and footer readings change.*
+![SignalView starts disconnected, connects, and shows changing readings and colored history](docs/images/signalview-demo.gif)
 
-## What it shows
+*Native EdgeTX 2.12.5 simulator capture. The loop starts disconnected, then shows synthetic signal changes, warning colors, scrolling history and changing footer values.*
 
-- Large Link Quality and receiver-signal readings, with dBm beside each antenna value.
-- Automatic single/dual-antenna display, with Auto, Single and Dual options.
-- A 30-second history of receiver signal and Link Quality. Single view shows the selected antenna; dual view uses solid and dashed traces.
-- White, amber and red current readings; green normal RSSI history and blue normal LQ history.
-- Immediate worsening indications and configurable delayed recovery.
-- Automatic RSSI thresholds from the verified ELRS 4.x RF-mode table, or manual thresholds.
-- Four selectable ELRS footer readings using EdgeTX's source picker. Defaults: TX power, RF mode, receiver SNR and downlink quality.
-- Readable RF-mode names for ELRS 3.x and 4.x. Large screens also show modulation and band when known.
-- The transmitter module's reported firmware version when discovery succeeds.
+## Features
 
-It works in full screen and a single near-full-screen widget area. **Use a one-widget layout with the EdgeTX top bar off.** Small widget areas intentionally stay blank. There are no miniature dashboards, prompts, voice alarms, flight logging or RF-setting controls.
+- **Three themes:** Dark, Rich Ivory and White. Dark is the default.
+- **Selectable history:** show both graphs, Receiver Signal only or Link Quality only. Single graphs use the full history area; switching views retains the recorded data.
+- **History retained on telemetry loss:** when all main graph sources become unavailable, the graphs freeze with an elapsed-loss timer. Current readings show `--`; reconnection leaves a break in the history.
+- **Automatic antenna display:** show one or two usable RSSI paths, with Auto, Single and Dual overrides. Dual view uses solid and dashed traces.
+- **Configurable warning colors:** healthy, amber and red readings and traces, with automatic or manual RSSI thresholds and a recovery delay.
+- **Four selectable footer readings:** choose supported ELRS telemetry using EdgeTX's source picker. Defaults are TX power, RF mode, receiver SNR and downlink quality.
+- **Readable RF modes:** ELRS 3.x/4.x rate names, with modulation and band on larger screens when known. The header shows the transmitter module's reported firmware version when available.
 
-## Install
+Use full screen or a single near-full-screen widget area with the **EdgeTX top bar off**. Layouts adapt to the tested landscape and portrait screens. Small or multi-widget areas stay blank.
 
-[Download the installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.3.0/elrs-signalview-0.3.0.zip) from the [release](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.3.0).
+## Install and update
 
-1. Back up your model and SD card.
-2. Copy `WIDGETS/SignalView` from this project into the SD card's existing `WIDGETS` directory.
-3. Confirm the file is at `/WIDGETS/SignalView/main.lua`.
-4. Restart the radio. Select **SignalView** in the model's widget setup and use a single-widget layout with the top bar off, or open the widget full screen.
-5. Establish the ELRS connection and discover telemetry sensors in EdgeTX if necessary.
+Download the [0.4.0 installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.4.0/elrs-signalview-0.4.0.zip). Use this package rather than GitHub's source-code archive.
 
-See [installation and updating](docs/INSTALLATION.md) for the full procedure and rollback steps. Release ZIPs are built with [the packaging tool](tools/build_release.py); use an install ZIP rather than a repository source archive when available.
+1. Back up your model settings and SD card.
+2. Copy the package's `WIDGETS/SignalView` folder into the SD card's existing `WIDGETS` directory.
+3. Confirm the file is at `/WIDGETS/SignalView/main.lua`, then restart the radio.
+4. Add **SignalView** to a single-widget screen with the top bar off, or open it full screen.
+5. Establish the ELRS connection and discover telemetry sensors in EdgeTX if needed.
 
-## Known Issue
+When updating:
 
-## Default settings
+- **Upgrading from 0.3.0 or a build without Theme first:** record your settings and remove the old widget instance. After replacing the Lua and restarting, add SignalView again and restore the settings. EdgeTX stores widget options by position.
+- **Updating a recent build with Theme already first:** replace the Lua and restart. Adding History preserves the existing option positions.
+- **RSSI mode changed from text to a dropdown:** this field initializes to Auto on upgrade. Reselect Manual or Off if required.
 
-| Setting | Default | Meaning |
+See [installation, bench checks and rollback](docs/INSTALLATION.md).
+
+## Settings
+
+Open **Widget Settings**. Choices are stored per widget instance in the model.
+
+| Setting | Default | Purpose |
 | --- | --- | --- |
-| LQ amber | 80 | Amber below 80% |
-| LQ red | 60 | Red below 60% |
-| RSSI mode | Auto | Enter `Auto`, `Manual` or `Off` |
-| RX amber | -98 | Manual RSSI amber boundary, dBm |
-| RX red | -103 | Manual RSSI red boundary, dBm |
-| Recover s | 1 | Recovery hold in seconds; 0 disables smoothing |
-| Antennas | Auto | Infer available RSSI paths, or select Single / Dual |
+| Theme | Dark | Dark / Rich Ivory / White |
+| LQ amber | 80% | Amber below this value |
+| LQ red | 60% | Red below this value |
+| RSSI mode | Auto | Auto / Manual / Off dropdown |
+| RX amber | −98 dBm | Manual RSSI warning threshold |
+| RX red | −103 dBm | Manual RSSI critical threshold |
+| Recover s | 1 | Delay before improved readings return to a better color |
+| Footer 1–4 | TPWR / RFMD / RSNR / TQly | Select supported ELRS sources using the native picker |
+| Antennas | Auto | Auto / Single / Dual |
+| History | Both | Both / Receiver Signal / Link Quality |
 
-Auto uses the current ELRS 4.x RFMD sensitivity limit plus 10 dB for amber and plus 5 dB for red. These two stages are a project policy based on ELRS's documented warning-margin guidance. The 80% LQ early warning is also a project choice; ELRS documents 60% as an OSD alarm starting point. None of these values predicts a failsafe or remaining range. [Settings and thresholds](docs/SETTINGS.md) explains boundaries, recovery and limitations.
+Automatic RSSI thresholds use the current **ELRS 4.x** RF mode's sensitivity limit plus 10 dB for amber and plus 5 dB for red. For ELRS 3.x, use Manual or Off. Unknown modes or unsupported versions show that Auto is unavailable rather than guessing a threshold. RF-mode names and automatic RSSI thresholds have different version support.
+
+Auto antenna display infers usable telemetry paths, not the physical antenna count. Both paths must qualify together for one second before first showing dual view. Established dual view survives partial dropouts. After complete link-data loss, five continuous seconds with only one usable path switches back to single view; both paths qualifying for one second restores or retains dual view.
+
+The warning stages and recovery timing are display policies, not a prediction of failsafe or remaining range. See [settings and thresholds](docs/SETTINGS.md), [RF-mode support](docs/RF-MODES.md) and [telemetry behavior](docs/TELEMETRY.md).
 
 ## Screenshots
 
-| Warning | Degraded |
-| --- | --- |
-| ![Amber warning state](docs/images/mk3-warning.png) | ![Red degraded state](docs/images/mk3-critical.png) |
+All images below are native simulator captures with synthetic telemetry. They are not photographs or live RF measurements. Capture versions and source hashes are recorded in the [image manifest](docs/images/manifest.json).
 
-These states use synthetic test values. Screenshots for all five resolutions, settings and full history are in the [screenshot gallery](docs/SCREENSHOTS.md).
+### Themes
+
+| Dark | Rich Ivory | White |
+| --- | --- | --- |
+| ![Dark theme](docs/images/theme-dark.png) | ![Rich Ivory theme](docs/images/theme-ivory.png) | ![White theme](docs/images/theme-white.png) |
+
+Healthy readings are white in Dark and dark text in the light themes. Normal receiver history and the LQ bar are green; normal LQ history is blue. Amber and red indicate degraded values in all three themes.
+
+### History views
+
+| Both — default | Receiver Signal | Link Quality |
+| --- | --- | --- |
+| ![Both history graphs](docs/images/theme-dark.png) | ![Receiver Signal history only](docs/images/history-receiver.png) | ![Link Quality history only](docs/images/history-quality.png) |
+
+The main readings and footer stay in place. Receiver-only history retains both antenna traces when dual view is active. Both histories continue to be collected in the same bounded buffer.
+
+### Telemetry loss
+
+![Frozen history after telemetry becomes unavailable](docs/images/mk3-stale.png)
+
+The last history remains visible with a **History frozen** timer. The `Now` label stays at the right edge of that frozen history. Selecting one graph does not change loss detection: freezing begins when all three main graph sources are unavailable.
+
+See the [full screenshot gallery](docs/SCREENSHOTS.md) for warning states, smaller landscape layouts and the NV14 portrait layout.
 
 ## Known working hardware
 
-This is a running list of setups reported working on physical radios. Reports describe the configuration and testing performed; additional hardware reports are welcome through the hardware-test issue form.
+This is a running list of physical-radio reports. A report applies to the tested build and setup, not every later revision.
 
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
-| RadioMaster TX16S MK3 | Internal ELRS, 4.0.0 | 2.12.5 | Maintainer reported 0.3.0-dev.3 working correctly on the radio, including the updated UI. Firmware versions are from the previously documented setup. |
-| PA01 | ELRS 4.1.0; module unspecified | Unknown | Community tester reported the current published release (0.3.0) working correctly. Report confirmed by the maintainer. |
+| RadioMaster TX16S MK3 | Internal ELRS 4.0.0 | 2.12.5 | Maintainer confirmed the 0.3.0 release candidate and subsequently tested 0.4.0 development builds. Physical confirmation of the final RSSI dropdown change is pending. |
+| PA01 | ELRS 4.1.0; module unspecified | Unknown | Community tester reported published 0.3.0 working correctly; report confirmed by the maintainer. |
 
-The 0.3.0 release uses the same widget behavior as the tested 0.3.0-dev.3 build. Receiver model, receiver firmware and test duration have not been recorded. No in-flight validation has been recorded. New reports should include these details so the list remains useful as firmware and hardware change.
+Receiver models, receiver firmware, test duration and in-flight validation have not been recorded. Please include these details in new hardware reports.
 
-### Simulator coverage
+## Known Issues
 
-These targets passed native EdgeTX **2.12.5** tests. Physical-radio reports are recorded above; the simulator firmware version does not identify the firmware used by community testers.
+## Support
 
-| Radio / target | Resolution | Evidence |
-| --- | --- | --- |
-| TX16S MK3 | 800 × 480 | Native simulator; physical report above |
-| TX16S | 480 × 272 | Native simulator only |
-| TX15 | 480 × 320 | Native simulator only |
-| NV14 | 320 × 480 | Native simulator only |
-| PA01 | 320 × 240 | Native simulator; community physical-radio report above |
-
-RF-mode names support **ELRS 3.x and 4.x**. Automatic RSSI thresholds remain **ELRS 4.x only**; use Manual or Off for 3.x. Unknown versions/modes retain a raw RFMD label, and ambiguous 3.x bands display `Band ?`. See [testing evidence and limits](docs/TESTING.md).
+[![Support SignalView on Ko-fi — help support ongoing development and radio testing.](docs/assets/support-signalview.svg)](https://ko-fi.com/pencilvestr)
 
 ## Help and feedback
 
-Open a bug report using the repository's issue form. Include radio model, exact EdgeTX and ELRS versions, receiver model, widget settings, a photograph or screenshot, and the complete error message. Never include binding phrases, credentials or a complete personal SD-card dump.
+Use the repository's [issue forms](https://github.com/Pencilvestr/elrs-signalview/issues/new/choose) for bugs, feature requests and hardware reports. Include the widget version, radio model, exact EdgeTX/ELRS versions, receiver model, relevant settings and a screenshot or complete error message. Do not include binding phrases, credentials or a personal SD-card dump.
 
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Telemetry and display reference](docs/TELEMETRY.md)
@@ -95,8 +120,5 @@ Open a bug report using the repository's issue form. Include radio model, exact 
 
 ## License and attribution
 
-Released under the [MIT License](LICENSE). This is an independent community project, not an official ExpressLRS, EdgeTX or RadioMaster product. Protocol and documentation references, screenshot provenance and test-runtime attribution are listed in [NOTICE](NOTICE.md).
+Released under the [MIT License](LICENSE). SignalView is an independent community project, not an official ExpressLRS, EdgeTX or RadioMaster product. See [NOTICE](NOTICE.md) for references and attribution.
 
-## Support
-
-[![Support SignalView on Ko-fi — help support ongoing development and radio testing.](docs/assets/support-signalview.svg)](https://ko-fi.com/pencilvestr)

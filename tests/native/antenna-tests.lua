@@ -5,6 +5,29 @@ local app=loadScript('/WIDGETS/SignalView/main.lua')()
 local names={'RQly','1RSS','2RSS','RSNR','RFMD','TPWR','TQly','TRSS','TSNR','ANT'}
 local sizes={{800,480},{320,240}}
 local cases={
+  {name='nonoverlapping_qualified_paths',samples={{100,-62,0},{200,-62,0},{220,0,-85},{320,0,-85}},selected=2},
+  {name='nonoverlapping_reverse_order',samples={{100,0,-85},{200,0,-85},{220,-62,0},{320,-62,0}},selected=1},
+  {name='alternating_subsecond_paths',samples={{100,-62,0},{180,-62,0},{200,0,-85},{280,0,-85},{300,-62,0},{380,-62,0}},selected=1},
+  {name='sparse_observations_qualify',samples={{100,-62,-85},{3100,-62,-85}},dual=true},
+  {name='dual_just_before_threshold',samples={{100,-62,-85},{180,-62,-85}},selected=1},
+  {name='LQ_current_blocks_reassessment',samples={{100,-62,-85},{200,-62,-85},{300,0,0},{400,-62,0},{900,-62,0}},dual=true,missing=3},
+  {name='second_path_returns_for_one_second',samples={{100,-62,-85},{200,-62,-85},{220,0,0,false,false,false},{300,-62,0},{600,-62,-85},{700,-62,-85},{720,-62,0},{1300,-62,0}},dual=true,missing=3},
+  {name='one_second_second_path_during_reassess',samples={{100,-62,-85},{200,-62,-85},{220,0,0,false,false,false},{300,-62,0},{600,-62,-85},{680,-62,-85},{700,-62,0},{1200,-62,0}},selected=1},
+  {name='selected_path_does_not_chase_strength',mode='Single',samples={{100,-95,-45},{200,-95,-45},{400,-105,-42}},selected=1},
+  {name='loss_before_any_dual_evidence',samples={{100,0,0,false,false,false},{200,-62,0},{800,-62,0}},selected=1},
+  {name='reassess_before_five_seconds',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{780,-62,0}},dual=true,missing=3},
+  {name='reassess_single_at_five_seconds',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{800,-62,0}},selected=1},
+  {name='reassess_second_only',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,0,-85},{800,0,-85}},selected=2},
+  {name='reassess_missing_second',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,false},{800,-62,false}},selected=1},
+  {name='reassess_stale_second',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,-85,true,false},{800,-62,-85,true,false}},selected=1},
+  {name='partial_loss_never_reassesses',samples={{100,-62,-85},{200,-62,-85},{300,-62,0},{6300,-62,0}},dual=true,missing=3},
+  {name='loss_keeps_dual_frozen',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{6300,-62,-85,false,false,false}},dual=true,missing=2},
+  {name='both_return_cancel_reassessment',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,-85},{400,-62,-85},{500,-62,0},{6000,-62,0}},dual=true,missing=3},
+  {name='brief_second_resets_single_hold',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{700,-62,-85},{720,-62,0},{1100,-62,0}},dual=true,missing=3},
+  {name='brief_second_then_full_single_hold',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{700,-62,-85},{720,-62,0},{1220,-62,0}},selected=1},
+  {name='second_returns_after_downgrade',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{800,-62,0},{900,-62,-85},{1000,-62,-85}},dual=true},
+  {name='forced_dual_survives_reassessment',mode='Dual',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{800,-62,0}},dual=true,missing=3},
+  {name='repeated_loss_restarts_hold',samples={{100,-62,-85},{200,-62,-85},{220,-62,-85,false,false,false},{300,-62,0},{700,-62,0},{720,-62,0,false,false,false},{800,-62,0},{1000,-62,0}},dual=true,missing=3},
   {name='startup_waits',samples={{100,-62,-85}},selected=1},
   {name='dual_confirmed',samples={{100,-62,-85},{200,-62,-85}},dual=true},
   {name='zero_second',samples={{100,-62,0},{200,-62,0}},selected=1,invalid=3},
@@ -72,6 +95,7 @@ return function()
       values[2]=sample[2]~=false and sample[2] or nil
       values[3]=sample[3]~=false and sample[3] or nil
       current[2]=sample[4]~=false;current[3]=sample[5]~=false
+      current[1]=sample[6]~=false
       app.background(widget)
       stage=stage+1
       return
@@ -90,9 +114,10 @@ return function()
     drawLine=function(x1,y1,x2,y2) lines[#lines+1]={x1,y1,x2,y2} end}
     -- Distinct fixed paths let us verify which antenna the single trace uses.
     local colors={saved.lcd.RGB(255,255,255),saved.lcd.RGB(255,255,255),saved.lcd.RGB(255,255,255)}
+    local plotTime=widget.lossSince and widget.historyEnd or tick
     widget.plotHistory={
-      {time=tick-200,[1]=90,[2]=-60,[3]=-100,colors=colors},
-      {time=tick-100,[1]=90,[2]=-60,[3]=-100,colors=colors}}
+      {time=plotTime-200,[1]=90,[2]=-60,[3]=-100,colors=colors},
+      {time=plotTime-100,[1]=90,[2]=-60,[3]=-100,colors=colors}}
     app.refresh(widget,0)
     assert(seen['dBm']==(case.dual and 2 or 1),'Each displayed antenna needs its own unit')
     if case.dual then

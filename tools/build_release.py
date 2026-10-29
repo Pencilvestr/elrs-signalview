@@ -25,14 +25,23 @@ Use one widget with the top bar OFF, or open full screen. Small areas stay blank
 Migrating from ELRS Diag: remove the old instance, add SignalView, and re-enter
 any custom settings. The product name and install directory have changed.
 
-Upgrading from 0.2.0: replace the Lua and restart; existing settings are retained.
+Upgrading from the recent dev.2 build with Theme FIRST: replace the Lua and
+restart. Existing settings are retained; no widget recreation is needed.
+If Theme is absent or is not first in your installed build, record settings,
+remove the widget instance, replace the Lua and restart, then add SignalView
+and restore settings. EdgeTX stores settings by position.
+Theme defaults to Dark; Rich Ivory and White are available in Widget Settings > Theme.
+History defaults to Both; Receiver Signal and Link Quality show a single graph.
+Adding History to an existing theme-first build preserves its saved settings.
 Antennas defaults to Auto; Single and Dual are also available in widget settings.
 For older text-selector builds, record settings and re-add SignalView. Select current
 ELRS sensor readings, not their min/max variants. None uses the original default.
 
 Defaults: LQ amber 80%, LQ red 60%, RSSI mode Auto, Manual RX amber/red
--98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode is
-a text field accepting Auto, Manual or Off. Record settings before upgrades.
+-98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode now
+uses an Auto / Manual / Off dropdown. Upgrading the old text field initializes
+RSSI mode to Auto; reselect Manual or Off if required. Other option positions
+are unchanged. Firmware without dropdown support retains text entry.
 
 Begin with a bench test, with propellers
 removed or the motor disconnected. See the project README for documentation,

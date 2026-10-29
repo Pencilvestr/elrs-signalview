@@ -33,11 +33,24 @@ def main():
     parser.add_argument('--antenna-mode',choices=['Auto','Single','Dual'],help='Persist antenna CHOICE in the model fixture')
     parser.add_argument('--antenna-tests',action='store_true',help='Run bounded antenna detection/rendering cases')
     parser.add_argument('--rf-tests',action='store_true',help='Run versioned RF label and layout cases')
+    parser.add_argument('--loss-tests',action='store_true',help='Run frozen-history loss/reconnection cases')
+    parser.add_argument('--loss-preview',action='store_true',help='Capture live, frozen and reconnected history')
     parser.add_argument('--rf-preview',action='store_true',help='Capture RF mode transitions and a full history')
     parser.add_argument('--elrs-major',type=int,choices=[3,4],default=4)
     parser.add_argument('--antenna-settings-probe',action='store_true',help='Scroll native MK3 settings to antenna dropdown')
     parser.add_argument('--antenna-picker-probe',action='store_true',help='Open native antenna choices after scrolling')
     parser.add_argument('--antenna-select-dual',action='store_true',help='Select Dual in the observed MK3 antenna dropdown')
+    parser.add_argument('--theme',choices=['Dark','Rich Ivory','White'],help='Persist widget theme in the model fixture')
+    parser.add_argument('--theme-tests',action='store_true',help='Verify theme switching and retained history')
+    parser.add_argument('--theme-picker-probe',action='store_true',help='Open native MK3 theme choices after scrolling')
+    parser.add_argument('--theme-select-dark',action='store_true',help='Select Dark in the native theme dropdown')
+    parser.add_argument('--history',choices=['Both','Receiver Signal','Link Quality'],help='Persist history view in the model')
+    parser.add_argument('--history-tests',action='store_true',help='Check history selection and geometry caches')
+    parser.add_argument('--history-picker-probe',action='store_true',help='Open the native History dropdown after scrolling')
+    parser.add_argument('--history-select-receiver',action='store_true',help='Select Receiver Signal in the observed MK3 dropdown')
+    parser.add_argument('--rssi-mode',choices=['Auto','Manual','Off'],help='Persist native RSSI mode choice')
+    parser.add_argument('--rssi-picker-probe',action='store_true',help='Open the native MK3 RSSI mode dropdown')
+    parser.add_argument('--rssi-select-mode',choices=['Auto','Manual','Off'],help='Select RSSI mode in its native dropdown')
     args=parser.parse_args()
     width,height=RADIOS[args.radio]
     run=Path(args.run_dir).resolve()
@@ -59,13 +72,18 @@ def main():
         telemetry=content.split('telemetrySensors:',1)[1]
         sensor_slots={name:int(slot) for slot,name in re.findall(
             r'(?ms)^   (\d+):\s*\n(?:(?!^   \d+:).)*?^      label: "([^"]+)"',telemetry)}
+        if args.rssi_mode:vals[2]=args.rssi_mode
         vals+=footer
-        if args.antenna_mode:vals.append(['Auto','Single','Dual'].index(args.antenna_mode)+1)
+        if args.antenna_mode or args.theme or args.history:vals.append(['Auto','Single','Dual'].index(args.antenna_mode or 'Auto')+1)
+        if args.history:vals.append(['Both','Receiver Signal','Link Quality'].index(args.history)+1)
+        vals.insert(0,['Dark','Rich Ivory','White'].index(args.theme or 'Dark')+1)
         entries=''
         for i,v in enumerate(vals):
-            if i==10:
+            if i==3:
+                typ='Unsigned';field='unsignedValue';val=str(['Auto','Manual','Off'].index(v)+1)
+            elif i==0 or i>=11:
                 typ='Unsigned';field='unsignedValue';val=str(v)
-            elif i>=6:
+            elif i>=7:
                 typ='Source';field='source'
                 val=f'tele({sensor_slots[v]})' if v in sensor_slots else v
             else:
@@ -87,6 +105,12 @@ def main():
     shutil.copyfile(HERE/'footer-tests.lua',lab/'footer-tests.lua')
     shutil.copyfile(HERE/'antenna-tests.lua',lab/'antenna-tests.lua')
     shutil.copyfile(HERE/'rf-tests.lua',lab/'rf-tests.lua')
+    shutil.copyfile(HERE/'loss-tests.lua',lab/'loss-tests.lua')
+    shutil.copyfile(HERE/'theme-tests.lua',lab/'theme-tests.lua')
+    shutil.copyfile(HERE/'history-tests.lua',lab/'history-tests.lua')
+    (lab/'history-enabled.lua').write_text('return '+('true' if args.history_tests else 'false')+'\n')
+    (lab/'theme-enabled.lua').write_text('return '+('true' if args.theme_tests else 'false')+'\n')
+    (lab/'loss-enabled.lua').write_text('return '+('true' if args.loss_tests else 'false')+'\n')
     (lab/'rf-enabled.lua').write_text('return '+('true' if args.rf_tests else 'false')+'\n')
     (lab/'antenna-enabled.lua').write_text('return '+('true' if args.antenna_tests else 'false')+'\n')
     shutil.copyfile(HERE/'profile.lua',lab/'profile.lua')
@@ -180,6 +204,19 @@ def main():
             tap(width/2,height/2,1.1)
             tap(width/2,height/2+42)
             capture('settings-reopened' if args.reuse_settings else 'settings-saved')
+            if args.rssi_picker_probe:
+                assert args.radio=='tx16smk3','RSSI settings coordinates target MK3'
+                tap(450,268)
+                capture('rssi-mode-choices')
+                if args.rssi_select_mode:
+                    tap(350,193+47*['Auto','Manual','Off'].index(args.rssi_select_mode))
+                    capture('rssi-mode-changed')
+            if args.theme_picker_probe:
+                tap(450,100)
+                capture('theme-choices')
+                if args.theme_select_dark:
+                    tap(310,194)
+                    capture('theme-choice-changed')
             if args.antenna_settings_probe:
                 assert args.radio=='tx16smk3','Antenna settings coordinates target MK3'
                 touch(obj,1,620,380);wait(.1)
@@ -187,11 +224,17 @@ def main():
                 touch(obj,0,620,120);wait(.8)
                 capture('antenna-settings')
                 if args.antenna_picker_probe:
-                    tap(450,400)
+                    tap(450,350)
                     capture('antenna-choices')
                     if args.antenna_select_dual:
                         tap(310,287)
                         capture('antenna-choice-changed')
+                if args.history_picker_probe:
+                    tap(450,400)
+                    capture('history-choices')
+                    if args.history_select_receiver:
+                        tap(380,240)
+                        capture('history-choice-changed')
             if args.source_picker_probe:
                 assert args.radio=='tx16smk3','Picker coordinates target the MK3'
                 # Bring Footer 1 fully inside the scrollable settings pane.
@@ -258,6 +301,18 @@ def main():
         if args.elrs_major==3:stats[5]=9
         streaming=True;wait(3)
         capture('04-connected')
+        if args.loss_preview:
+            wait(32)
+            for i in range(16):
+                stats[0]=-62-i*3;stats[1]=stats[0]-3;stats[2]=99-i*4
+                wait(.5)
+            capture('loss-live')
+            streaming=False;wait(12);capture('loss-frozen')
+            wait(35);capture('loss-still-frozen')
+            stats[:]=[-62,-65,99,8,0,29,7,-75,97,6]
+            streaming=True;wait(3);capture('loss-reconnected')
+            print('PHASE|complete',flush=True)
+            return
         if args.rf_preview:
             for mode in ([29,28,11,100,33,255] if args.elrs_major==4 else [9,8,2,7,19,13,255]):
                 stats[5]=mode;wait(1);capture(f'rf-{mode}')
@@ -273,7 +328,7 @@ def main():
             print('PHASE|complete',flush=True)
             fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
             sys.stdout.flush();sys.stderr.flush();os._exit(0)
-        if args.reference_source or args.antenna_tests or args.rf_tests:
+        if args.reference_source or args.antenna_tests or args.rf_tests or args.loss_tests or args.theme_tests or args.history_tests:
             # The oracle chunks comparisons across callbacks so test code does
             # not compete with a complete renderer for the Lua CPU budget.
             wait(75)

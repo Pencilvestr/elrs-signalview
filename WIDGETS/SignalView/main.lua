@@ -1,4 +1,4 @@
--- ELRS SignalView 0.3.0. Original implementation, MIT licensed.
+-- ELRS SignalView 0.4.0. Original implementation, MIT licensed.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -51,6 +51,23 @@ local C = {
   text=lcd.RGB(255,255,255), muted=lcd.RGB(167,185,173),
   accent=lcd.RGB(112,217,154), warn=lcd.RGB(255,195,106), red=lcd.RGB(255,116,116), blue=lcd.RGB(118,186,255), rule=lcd.RGB(48,65,55)
 }
+-- Keep stored severity colors canonical. Translate only at the drawing boundary
+-- so theme changes preserve history and recovery timers, including frozen plots.
+local ivory = {
+  [C.bg]=lcd.RGB(242,233,211), [C.card]=lcd.RGB(220,213,190),
+  [C.text]=lcd.RGB(51,47,36), [C.muted]=lcd.RGB(102,94,73),
+  [C.accent]=lcd.RGB(58,105,57), [C.warn]=lcd.RGB(132,76,4),
+  [C.red]=lcd.RGB(171,40,33), [C.blue]=lcd.RGB(38,94,139),
+  [C.rule]=lcd.RGB(204,194,169)
+}
+local white = {
+  [C.bg]=lcd.RGB(250,249,242), [C.card]=lcd.RGB(224,229,219),
+  [C.text]=lcd.RGB(39,48,43), [C.muted]=lcd.RGB(89,101,92),
+  [C.accent]=lcd.RGB(35,117,65), [C.warn]=lcd.RGB(141,85,0),
+  [C.red]=lcd.RGB(181,41,43), [C.blue]=lcd.RGB(31,100,158),
+  [C.rule]=lcd.RGB(212,217,205)
+}
+local drawPalette
 -- Cache sensor IDs and rescan periodically so telemetry discovery can happen
 -- after widget creation. A name existing does not imply its value is current.
 local function scan(w)
@@ -194,11 +211,15 @@ local function usableRSSI(s)
 end
 -- Infer available signal paths, not physical hardware or antenna health.
 -- Require a second of continuous evidence per path. Once observed, retain
--- dual layout through dropouts/reconnection so a missing path stays visible.
-local function detectAntennas(w,now)
+-- dual layout through partial dropouts. Complete graph-data loss starts a
+-- new observation period without changing the frozen display.
+local function detectAntennas(w,now,lost)
   local a=w.antenna
   if not a then a={selected=1};w.antenna=a end
-  if a.time and now<a.time then a.since1=nil;a.since2=nil;a.missingSince=nil end
+  if a.time and now<a.time then
+    a.since1=nil;a.since2=nil;a.missingSince=nil
+    a.reassess=nil;a.singleSince=nil;a.singlePath=nil
+  end
   a.time=now
   local first,second=usableRSSI(w.sensors[2]),usableRSSI(w.sensors[3])
   if first then
@@ -209,7 +230,27 @@ local function detectAntennas(w,now)
     a.since2=a.since2 or now
     if now-a.since2>=100 then a.seen2=true end
   else a.since2=nil end
-  a.dual=a.seen1 and a.seen2 or false
+  if lost then
+    if w.historyEnd then a.reassess=true end
+    a.singleSince=nil;a.singlePath=nil
+  elseif a.reassess then
+    if first and second then
+      a.singleSince=nil;a.singlePath=nil
+      if now-a.since1>=100 and now-a.since2>=100 then a.reassess=nil end
+    elseif first or second then
+      local path=first and 1 or 2
+      if a.singlePath~=path then a.singlePath=path;a.singleSince=now end
+      -- Five seconds is a display policy, not an ELRS receiver identifier.
+      if now-a.singleSince>=500 then
+        a.seen1=first;a.seen2=second;a.selected=path
+        a.reassess=nil;a.singleSince=nil;a.singlePath=nil
+      end
+    else a.singleSince=nil;a.singlePath=nil end
+  end
+  -- Experimental: first promotion requires overlapping qualified paths.
+  -- Once established, retain the current partial-dropout/reassessment policy.
+  a.dual=a.seen1 and a.seen2 and (a.dual or
+    (first and second and now-a.since1>=100 and now-a.since2>=100)) or false
   -- In single view, select a qualified alternative only when the chosen path
   -- is unavailable. Never follow the strongest RSSI or switch on each packet.
   local selectedAvailable=(a.selected==1 and first) or (a.selected==2 and second)
@@ -233,14 +274,18 @@ sample=function(w)
   baseSample(w)
   if previous==w.sampleTime then return end
   local now=w.sampleTime
-  detectAntennas(w,now)
+  -- A radio clock reset must not leave an old frozen timeline in the future.
+  if previous and now<previous then
+    w.plotHistory=nil;w.historyEnd=nil;w.lossSince=nil
+  end
   local point={time=now,colors={}}
   w.lastSample=point
   w.displayColors=w.displayColors or {}
   local warning,critical=thresholds(w)
   for i=1,3 do
     local s=w.sensors[i]
-    local available=s.current and type(s.value)=='number' and (i==1 or usableRSSI(s))
+    local available=s.current and type(s.value)=='number' and s.value==s.value
+      and s.value>-math.huge and s.value<math.huge and (i==1 or usableRSSI(s))
     local color=available and severity(w,s,i~=1,warning,critical) or C.muted
     if available then
       point[i]=s.value
@@ -248,16 +293,28 @@ sample=function(w)
     end
     w.displayColors[i]=smooth(w,i,color,now,warning,critical)
   end
+  -- Freeze only when every main graph source is unavailable. A missing
+  -- antenna alone keeps its usual gap while other current data is recorded.
+  -- EdgeTX freshness determines loss; this cannot identify receiver failsafe.
+  local lost=point[1]==nil and point[2]==nil and point[3]==nil
+  detectAntennas(w,now,lost)
+  if lost then
+    if w.historyEnd then w.lossSince=w.lossSince or now end
+    return
+  end
+  local reconnect=w.lossSince~=nil
+  w.lossSince=nil
   -- Bound drawing work independently of refresh frequency. Retain the weakest
   -- sample per second, with its original color, so short dips remain visible.
   if not w.plotHistory or (w.plotHistory[#w.plotHistory] and now<w.plotHistory[#w.plotHistory].time) then w.plotHistory={} end
   local plots=w.plotHistory
   local bucket=plots[#plots]
   local second=math.floor(now/100)
-  if not bucket or bucket.second~=second then
-    bucket={time=now,second=second,seq=second,colors={},gap={}}
+  if reconnect or not bucket or bucket.second~=second then
+    bucket={time=now,second=second,seq=second,colors={},gap={},breakBefore=reconnect}
     plots[#plots+1]=bucket
   end
+  w.historyEnd=bucket.time
   for i=1,3 do
     if point[i]==nil then
       bucket[i]=nil;bucket.colors[i]=nil;bucket.gap[i]=true;bucket.layoutW=nil
@@ -278,12 +335,24 @@ local function defaults(options)
   local names={LQwarn='LQ amber',LQcrit='LQ red',RSSIwarn='RX amber',RSSIcrit='RX red',Recover='Recover s'}
   for k,v in pairs({LQwarn=80,LQcrit=60,RSSIwarn=-98,RSSIcrit=-103,Recover=1}) do o[k]=src[names[k]] or src[k] or v end
   local mode=src['RSSI mode']
-  if mode then o.RSSImode=({auto=0,manual=1,off=2})[string.match(string.lower(mode),'^%s*(.-)%s*$')] or -1
-  else o.RSSImode=src.RSSImode or 0 end
+  if type(mode)=='number' then
+    -- EdgeTX may supply zero while initializing an old text option as CHOICE.
+    o.RSSImode=({[0]=0,[1]=0,[2]=1,[3]=2})[mode] or -1
+  elseif type(mode)=='string' then
+    mode=string.match(string.lower(mode),'^%s*(.-)%s*$')
+    o.RSSImode=({auto=0,manual=1,off=2,['']=0})[mode] or -1
+  elseif mode==nil then o.RSSImode=src.RSSImode or 0
+  else o.RSSImode=-1 end
   local antennas=src.Antennas
   if type(antennas)=='number' then antennas=({[1]='auto',[2]='single',[3]='dual'})[antennas] end
   antennas=type(antennas)=='string' and string.match(string.lower(antennas),'^%s*(.-)%s*$') or 'auto'
   o.Antennas=(antennas=='single' or antennas=='dual') and antennas or 'auto'
+  local theme=src.Theme
+  if type(theme)=='string' then theme=string.match(string.lower(theme),'^%s*(.-)%s*$') end
+  o.Theme=(theme==2 or theme=='rich ivory') and 2 or ((theme==3 or theme=='white') and 3 or 1)
+  local history=src.History
+  if type(history)=='string' then history=string.match(string.lower(history),'^%s*(.-)%s*$') end
+  o.History=(history==2 or history=='receiver signal') and 2 or ((history==3 or history=='link quality') and 3 or 1)
   o.footer={};o.footerSources={}
   for i,key in ipairs(footerDefaults) do
     local setting=src['Footer '..i]
@@ -309,13 +378,14 @@ end
 -- Refresh is synchronous; reset this drawing origin for every instance/call.
 local originX,originY=0,0
 local function text(x,y,str,font,color)
-  lcd.drawText(math.floor(x+originX), math.floor(y+originY), str, (font or SMLSIZE)+(color or C.text))
+  color=color or C.text
+  lcd.drawText(math.floor(x+originX), math.floor(y+originY), str, (font or SMLSIZE)+(drawPalette and drawPalette[color] or color))
 end
 local function rect(x,y,width,height,color)
-  lcd.drawFilledRectangle(math.floor(x+originX),math.floor(y+originY),math.max(1,math.floor(width)),math.max(1,math.floor(height)),color)
+  lcd.drawFilledRectangle(math.floor(x+originX),math.floor(y+originY),math.max(1,math.floor(width)),math.max(1,math.floor(height)),drawPalette and drawPalette[color] or color)
 end
 local function line(x1,y1,x2,y2,style,color)
-  lcd.drawLine(x1+originX,y1+originY,x2+originX,y2+originY,style,color)
+  lcd.drawLine(x1+originX,y1+originY,x2+originX,y2+originY,style,drawPalette and drawPalette[color] or color)
 end
 local function versionHeader(w)
   return w.moduleVersion and ('ELRS '..w.moduleVersion) or 'ELRS LINK'
@@ -430,20 +500,30 @@ local function displayColor(w,index)
   return w.displayColors and w.displayColors[index] or C.muted
 end
 -- X changes as the window scrolls, but settled bucket Y coordinates do not.
--- Recompute Y only when a bucket changes or the widget area is resized. Cache
+-- Recompute Y when a bucket, history selection or widget size changes. Cache
 -- per instance/bucket; changing screen origin does not change local geometry.
 local function preparePlot(w,W,H,left,right,rxTop,rxHeight,lqTop,lqHeight)
-  local now=getTime()
+  local now=w.lossSince and w.historyEnd or getTime()
   for _,point in ipairs(w.plotHistory or {}) do
     point.screenX=left+(point.time-(now-3000))/3000*(right-left)
-    if point.layoutW~=W or point.layoutH~=H then
+    if point.layoutW~=W or point.layoutH~=H or point.layoutHistory~=w.options.History then
       local a,b,q=point[2],point[3],point[1]
       point.rxY1=a and (rxTop+(-40-math.max(-120,math.min(-40,a)))/80*rxHeight) or nil
       point.rxY2=b and (rxTop+(-40-math.max(-120,math.min(-40,b)))/80*rxHeight) or nil
       point.lqY=q and (lqTop+(100-math.max(0,math.min(100,q)))/100*lqHeight) or nil
       point.layoutW=W;point.layoutH=H
+      point.layoutHistory=w.options.History
     end
   end
+end
+-- Cache the elapsed label once per second; keep timer work out of plot loops.
+local function frozenLabel(w)
+  if not w.lossSince then return nil end
+  local seconds=math.max(0,math.floor((getTime()-w.lossSince)/100))
+  if w.lossSeconds~=seconds then
+    w.lossSeconds=seconds;w.lossLabel='History frozen - '..seconds..' s'
+  end
+  return w.lossLabel
 end
 -- Compact landscape and portrait share the approved information hierarchy.
 -- Every plot uses one predecessor outside the window for left-edge clipping.
@@ -458,11 +538,15 @@ local function compactDashboard(w,W,H)
   local footer=H-36
   local timeY=footer-20
   local graphBottom=timeY-6
-  local panelH=math.floor((graphBottom-chartTop)/2)
-  preparePlot(w,W,H,left,right,chartTop+17,panelH-21,chartTop+panelH+17,panelH-21)
+  local singlePanel=w.options.History>1 and w.options.History-1 or nil
+  -- Add separation on the approved TX16S, TX15 and portrait layouts.
+  local panelGap=(portrait or (W==480 and (H==272 or H==320))) and 8 or 0
+  local panelH=singlePanel and (graphBottom-chartTop) or math.floor((graphBottom-chartTop-panelGap)/2)
+  local lqTop=singlePanel and (chartTop+17) or (chartTop+panelH+panelGap+17)
+  preparePlot(w,W,H,left,right,chartTop+17,panelH-21,lqTop,panelH-21)
   local q=w.sensors[1]
   text(p,6,versionHeader(w),SMLSIZE)
-  text(W-p,6,w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry'),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
+  text(W-p,6,w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry')),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
   rect(p,24,W-p*2,1,C.text)
   text(p,top,'Link Quality',SMLSIZE,C.muted)
   text(mid,top,'Receiver Signal',SMLSIZE,C.muted)
@@ -478,7 +562,8 @@ local function compactDashboard(w,W,H)
   end
   local warning,critical,mode=thresholds(w)
   local modeText=warning and ((w.options.RSSImode==0 and 'Auto ' or 'Manual ')..warning..'/'..critical) or mode
-  text(W-p,portrait and 100 or 89,modeText,SMLSIZE+RIGHT,C.muted)
+  local frozen=frozenLabel(w)
+  text(W-p,portrait and 100 or 89,frozen or modeText,SMLSIZE+RIGHT,frozen and C.warn or C.muted)
   local by=portrait and 103 or 92
   local bw=math.floor(W*.32)
   rect(p,by,bw,5,C.card)
@@ -486,16 +571,17 @@ local function compactDashboard(w,W,H)
     local color=displayColor(w,1)
     rect(p,by,bw*math.max(0,math.min(100,q.value))/100,5,color==C.text and C.accent or color)
   end
-  for panel=1,2 do
-    local ytop=chartTop+(panel-1)*panelH
+  for panel=singlePanel or 1,singlePanel or 2 do
+    local ytop=singlePanel and chartTop or (chartTop+(panel-1)*(panelH+panelGap))
     text(left,ytop,panel==1 and (two and 'ANT1 / ANT2 dashed - dBm' or 'Receiver Signal - dBm') or 'Link Quality - %',SMLSIZE,C.muted)
     local y0=ytop+17
     local bottom=ytop+panelH-4
     local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
-    for n=0,1 do
-      local yy=n==0 and y0 or bottom
+    local divisions=(portrait or singlePanel) and 2 or 1
+    for n=0,divisions do
+      local yy=y0+(bottom-y0)*n/divisions
       rect(left,yy,right-left,1,C.rule)
-      text(left-4,yy-6,tostring(n==0 and high or low),SMLSIZE+RIGHT,C.muted)
+      text(left-4,yy-6,string.format('%.0f',high+(low-high)*n/divisions),SMLSIZE+RIGHT,C.muted)
     end
     for antenna=1,(panel==1 and two) and 2 or 1 do
       local px,py
@@ -506,7 +592,7 @@ local function compactDashboard(w,W,H)
         local x=point.screenX
         if v and x<=right then
           local yy=panel==1 and (path==1 and point.rxY1 or point.rxY2) or point.lqY
-          if px and x>=left then
+          if px and not point.breakBefore and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
             local color=point.colors[index]
             if color==C.text then color=panel==1 and C.accent or C.blue end
@@ -546,7 +632,7 @@ local function dashboard(w,W,H)
   local mid=math.floor(W/2)+p/2
   text(p,12,versionHeader(w),wide and MIDSIZE or small)
   local current=w.sensors[1].current
-  text(W-p,16,w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (current and 'Telemetry current' or 'No current telemetry'),small+RIGHT,current and C.accent or C.warn)
+  text(W-p,16,w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (current and 'Telemetry current' or 'No current telemetry')),small+RIGHT,current and C.accent or C.warn)
   rect(p,wide and 53 or 37,W-2*p,2,C.text)
   text(p,top,'Link Quality',small,C.muted)
   text(mid,top,'Receiver Signal',small,C.muted)
@@ -564,7 +650,8 @@ local function dashboard(w,W,H)
   local barY=chartTop-22
   local warning,critical,modeLabel=thresholds(w)
   -- Leave clear space below the small-font descenders and above the divider.
-  text(W-p,barY-12,modeLabel..(warning and (' '..warning..' / '..critical) or ''),small+RIGHT,C.muted)
+  local frozen=frozenLabel(w)
+  text(W-p,barY-12,frozen or (modeLabel..(warning and (' '..warning..' / '..critical) or '')),small+RIGHT,frozen and C.warn or C.muted)
   local barW=math.floor(W*.34)
   rect(p,barY,barW,6,C.card)
   if q.current and type(q.value)=='number' then
@@ -573,14 +660,17 @@ local function dashboard(w,W,H)
   end
   rect(p,chartTop-8,W-2*p,1,C.rule)
   local plotH=math.max(25,math.floor((footer-chartTop-48)/2))
+  local singlePanel=w.options.History>1 and w.options.History-1 or nil
+  local graphH=singlePanel and (2*plotH-20) or (plotH-38)
   local left=p+36
   local right=W-p-3
-  preparePlot(w,W,H,left,right,chartTop+28,plotH-38,chartTop+plotH+46,plotH-38)
-  for panel=1,2 do
-    local ytop=chartTop+(panel-1)*(plotH+18)
+  local lqTop=singlePanel and (chartTop+28) or (chartTop+plotH+46)
+  preparePlot(w,W,H,left,right,chartTop+28,graphH,lqTop,graphH)
+  for panel=singlePanel or 1,singlePanel or 2 do
+    local ytop=singlePanel and chartTop or (chartTop+(panel-1)*(plotH+18))
     text(p,ytop,panel==1 and (two and 'ANT 1 solid / ANT 2 dashed - dBm' or 'Receiver Signal - dBm') or 'Link Quality - %',small,C.muted)
     local y0=ytop+28
-    local h=plotH-38
+    local h=graphH
     local low,high=panel==1 and -120 or 0,panel==1 and -40 or 100
     for n=0,2 do
       local yy=y0+n*h/2
@@ -596,7 +686,7 @@ local function dashboard(w,W,H)
         local x=point.screenX
         if v and x<=right then
           local yy=panel==1 and (path==1 and point.rxY1 or point.rxY2) or point.lqY
-          if px and x>=left then
+          if px and not point.breakBefore and x>=left then
             if px<left then py=py+(yy-py)*(left-px)/(x-px);px=left end
             local color=point.colors[index]
             if color==C.text then color=panel==1 and C.accent or C.blue end
@@ -626,6 +716,8 @@ end
 -- EdgeTX supplies events only in full screen. Normal areas must be almost the
 -- whole screen: small/multi-widget zones stay blank, with no prompt or preview.
 local function refresh(w,event,touch)
+  -- Each synchronous refresh selects its own palette, including blank zones.
+  drawPalette=w.options.Theme==2 and ivory or (w.options.Theme==3 and white or nil)
   sample(w)
   local full=event~=nil
   local width,height
@@ -642,7 +734,7 @@ local function refresh(w,event,touch)
   dashboard(w,width,height)
 end
 return {
-  name="SignalView", options={{"LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",STRING,"Auto"},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}}}, create=create,
+  name="SignalView", options={{"Theme",CHOICE or STRING,CHOICE and 1 or "Dark",{"Dark","Rich Ivory","White"}},{ "LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Manual","Off"}},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}},{"History",CHOICE or STRING,CHOICE and 1 or "Both",{"Both","Receiver Signal","Link Quality"}}}, create=create,
   update=function(w,options) w.options=defaults(options);scan(w) end,
   refresh=refresh, background=sample
 }
