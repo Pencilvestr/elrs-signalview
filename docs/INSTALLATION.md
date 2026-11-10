@@ -73,3 +73,9 @@ Restore the previous `main.lua`, restart, and restore its recorded widget settin
 ## Footer settings
 
 Follow the upgrade procedure for your current build, then select Footer 1–4 using the native source picker. None/unset retains each position's original default. See [Settings](SETTINGS.md) for supported sensors.
+
+## Updating to 0.5.0
+
+From 0.4.0, replace `/WIDGETS/SignalView/main.lua` and restart the radio. Keep the widget instance and its settings; no option positions changed. In-memory history clears on restart. Older-version migration requirements above still apply.
+
+For history review, use full screen and hold a graph for one second before releasing, or hold Enter. Scroll using the wheel/navigation controls or touch. Short Exit or Live returns to live readings. Review is not available in a normal widget area. See [telemetry behavior](TELEMETRY.md#history-review).

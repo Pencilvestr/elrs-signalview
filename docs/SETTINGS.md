@@ -119,3 +119,7 @@ Zero seconds disables both the recovery hold and the recovery margin. History co
 ## Status text
 
 `Telemetry current` means EdgeTX considers the LQ source current. It is not a declaration that the entire RC link is safe. `No current telemetry` reflects unavailable/stale LQ. Receiver power-off is recognized when EdgeTX expires the sensor; the widget does not independently detect lost RF packets before that expiry.
+
+## History review in 0.5.0
+
+No new widget setting is required. History still selects Both, Receiver Signal or Link Quality; the review feature uses the same theme and graph selection. Enter review deliberately in full screen using a one-second graph hold/release or long Enter. Refer to [history review](TELEMETRY.md#history-review) for retention, controls and limitations.

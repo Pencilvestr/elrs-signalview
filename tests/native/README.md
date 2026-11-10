@@ -31,3 +31,7 @@ Run `worker.py --radio tx16smk3 --run-dir tests/native/results/history-cases --h
 ## Theme tests (local development)
 
 Use `worker.py --radio tx16smk3 --run-dir tests/native/results/theme-final --theme-tests --theme "Rich Ivory"`. The theme suite compares renderer commands in 800×480 and 320×240 layouts, checks defaults and invalid selections, verifies numeric and text selections, alternates widget instances, and retains frozen history and alert state across changes. Fourteen `THEME|...|true` rows indicate completion; also check the log for script/CPU errors. `--theme` persists the selected value in the simulator model; `--reuse-settings` reopens it on a subsequent run. Omit `--theme-tests` for normal screenshots and add `--profile` for instruction-budget measurements without functional-test overhead.
+
+## History-review tests (0.5.0)
+
+`python tests/native/run_review.py --suite timing` runs the ten readout-timing/gap cases on all five targets. `--suite archive` runs the bounded archive cases and accelerated fill/wrap checks; `--suite both` runs both. Use `--radios` to select targets. `worker.py --review-suite timing` or `archive` selects the corresponding test-only observer. No test helpers are included in the installation ZIP.

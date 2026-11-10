@@ -22,26 +22,21 @@ The final path must be /WIDGETS/SignalView/main.lua.
 Restart the radio and choose SignalView in the model's widget setup.
 Use one widget with the top bar OFF, or open full screen. Small areas stay blank.
 
-Migrating from ELRS Diag: remove the old instance, add SignalView, and re-enter
-any custom settings. The product name and install directory have changed.
+Updating from 0.4.0: replace the Lua and restart. Keep your existing widget
+instance and settings. For older versions, see docs/INSTALLATION.md in the repo.
 
-Upgrading from the recent dev.2 build with Theme FIRST: replace the Lua and
-restart. Existing settings are retained; no widget recreation is needed.
-If Theme is absent or is not first in your installed build, record settings,
-remove the widget instance, replace the Lua and restart, then add SignalView
-and restore settings. EdgeTX stores settings by position.
-Theme defaults to Dark; Rich Ivory and White are available in Widget Settings > Theme.
-History defaults to Both; Receiver Signal and Link Quality show a single graph.
-Adding History to an existing theme-first build preserves its saved settings.
-Antennas defaults to Auto; Single and Dual are also available in widget settings.
-For older text-selector builds, record settings and re-add SignalView. Select current
-ELRS sensor readings, not their min/max variants. None uses the original default.
+History review requires full screen. Hold the graph for one second and release,
+or hold Enter. Scroll with the wheel/navigation controls or touch. Short Exit
+or Live returns to current readings. History is a rolling, in-memory 15-minute
+archive and clears on restart. Recording continues during review.
 
-Defaults: LQ amber 80%, LQ red 60%, RSSI mode Auto, Manual RX amber/red
--98/-103 dBm, Recover s 1. Auto is for confirmed ELRS 4.x only. RSSI mode now
-uses an Auto / Manual / Off dropdown. Upgrading the old text field initializes
-RSSI mode to Auto; reselect Manual or Off if required. Other option positions
-are unchanged. Firmware without dropdown support retains text entry.
+Theme defaults to Dark; Rich Ivory and White are also available.
+History defaults to Both; Receiver Signal and Link Quality select one graph.
+Antennas defaults to Auto; Single and Dual remain available.
+LQ amber/red defaults are 80%/60%. Auto RSSI is for confirmed ELRS 4.x only;
+use Manual or Off for other versions. Manual RX amber/red defaults: -98/-103 dBm.
+Very early history windows may display negative uptime labels. See the
+telemetry reference in the repository for limitations and discovery behavior.
 
 Begin with a bench test, with propellers
 removed or the motor disconnected. See the project README for documentation,
