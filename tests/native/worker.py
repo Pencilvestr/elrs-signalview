@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--reuse-settings',action='store_true')
     parser.add_argument('--soak-seconds',type=int,default=0)
     parser.add_argument('--zone-probe',action='store_true')
+    parser.add_argument('--review-suite',choices=['timing','archive'],help='Run native history-review tests')
     parser.add_argument('--demo',action='store_true',help='Capture a continuous documentation animation')
     parser.add_argument('--footer',nargs=4,metavar='ELRS_SOURCE',help='Set four ELRS footer sources')
     parser.add_argument('--source-picker-probe',action='store_true',help='Open first MK3 footer source picker in settings')
@@ -99,7 +100,7 @@ def main():
     if not source.is_relative_to(PROJECT.resolve()):raise RuntimeError('Widget source must remain in this project')
     shutil.copyfile(source,target/'main.lua')
     lab=sd/'WIDGETS/LabTest';lab.mkdir(parents=True,exist_ok=True)
-    shutil.copyfile(HERE/'instrument.lua',lab/'main.lua')
+    shutil.copyfile(HERE/('review-'+args.review_suite+'.lua' if args.review_suite else 'instrument.lua'),lab/'main.lua')
     shutil.copyfile(HERE/'threshold-tests.lua',lab/'threshold-tests.lua')
     shutil.copyfile(HERE/'smoothing-tests.lua',lab/'smoothing-tests.lua')
     shutil.copyfile(HERE/'footer-tests.lua',lab/'footer-tests.lua')
@@ -269,6 +270,12 @@ def main():
             tap(width/2,height/2-5)
         wait(.5)
         capture('03-no-data-fullscreen')
+        if args.review_suite:
+            wait(55 if args.review_suite=='archive' else 8)
+            capture('review-tests')
+            print('PHASE|complete',flush=True)
+            fn(sim,'?stop@OpenTxSimulator@@UEAAXXZ',[P])(obj)
+            sys.stdout.flush();sys.stderr.flush();os._exit(0)
         if args.demo:
             import math
             print('PHASE|demo',flush=True)

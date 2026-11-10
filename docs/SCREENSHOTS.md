@@ -2,7 +2,7 @@
 
 [Back to README](../README.md)
 
-These images show the **0.4.0** interface, captured from its development candidate in the native EdgeTX **2.12.5** simulator. Telemetry and module-version responses are synthetic. They illustrate the UI, not measured RF performance. Exact capture versions and source hashes are recorded in the image manifest.
+Live-dashboard images originate from **0.4.0**; that layout is unchanged in **0.5.0**. The history-review images below were captured from the **0.5.0** release source in the native EdgeTX **2.12.5** simulator. Telemetry and module-version responses are synthetic. They illustrate the UI, not measured RF performance. Exact capture versions and source hashes are recorded in the image manifest.
 
 ## Animated dashboard
 
@@ -87,3 +87,13 @@ This capture uses non-default persistence-test settings and the test observer's 
 Images retain their native dimensions. The [image manifest](images/manifest.json) records source hashes, image hashes, simulator version and capture provenance; it also retains entries for older reference assets not displayed here.
 
 The GIF uses a shared palette derived from native captures. No readings or graph traces are drawn onto the images afterward. Reproduce the animation with the native worker's `--demo` option and `python tools/build_demo.py`. See [Testing](TESTING.md) for the simulator workflow.
+
+## History review (0.5.0)
+
+![Connection, flight and history-review walkthrough](images/history-review-demo.gif)
+
+This 41-second loop starts disconnected, then shows synthetic signal degradation/recovery, loss, review and return to live. The simulated flight runs at 4x speed. Navigation is scripted for the demonstration; native control tests are separate. A caption strip explains each phase.
+
+![Historical main readings and navigation](images/history-review.png)
+
+The main values are historical one-second minima. Live footer values are replaced by review navigation. The capture uses the production 0.5.0 Lua; provenance is in the image manifest.

@@ -64,8 +64,14 @@ Never infer healthy values from missing sources or connect a trace across missin
 5. Exercise a full 30-second history window when changing sample/drawing loops.
 6. Update documentation, screenshot provenance and release notes when behavior changes.
 
-The renamed beta preserves the previously bench-tested executable Lua behavior except the picker name, which changes from ELRS Diag to SignalView. Added comments do not add runtime work.
+The 0.5.0 production Lua is the source of truth. The former local prototype builder is not part of the release pipeline. The release is promoted from the bench-tested candidate with version/comment changes only.
 
 ## Release process
 
 See [RELEASING.md](RELEASING.md). GitHub CI performs lightweight syntax, link/asset and packaging checks. It does not claim to run the native Windows simulator, emulate RF, or test hardware.
+
+## History-review internals (0.5.0)
+
+`Review.record` maintains parallel arrays capped at 901 records. Antenna metadata preserves both dual availability and selected path (1/2 single, 3/4 dual). `Review.window` uses a binary search and at most 32 render records, preserving valid Y caches and returning a transient timing-validity boundary. `Review.input` implements deliberate full-screen entry and navigation. `Review.render` uses a separate historical view so current sensor acquisition continues independently.
+
+Normal sample timestamps need not be exactly one second apart. The validity boundary may extend to the next adjacent-second record, but never across a missing second or known reconnection. It is returned from the window lookup rather than stored in every record. The archive adds retained memory; see the [performance record](PERFORMANCE.md).

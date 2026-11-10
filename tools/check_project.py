@@ -7,7 +7,7 @@ import re
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
-IGNORED = {'.git', 'dist', '.runtime', '.cache', '__pycache__', 'results',
+IGNORED = {'.git', 'dist', 'work', '.runtime', '.cache', '__pycache__', 'results',
            'large-zone-probe', 'settings-persistence', 'endurance', '.venv', 'LOCAL-TESTING.md'}
 
 

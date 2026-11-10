@@ -36,3 +36,11 @@ Use the bug-report form. Include only relevant logs/screenshots with identifying
 ## Reported lag
 
 Slight lag was reported on an MK3 with the selectable-footer build. The cause is unmeasured. Version 0.2.0 includes simulator-measured optimizations; physical confirmation is pending. Include where the lag occurs, its approximate duration, selected footer sensors and other running widgets when reporting it.
+
+## History review does not open
+
+Review controls require full screen and at least two recorded history buckets. Hold the graph still for one second and release, or hold Enter. Short taps and moving the finger during the hold do not activate it. A normal large widget area shows live data only.
+
+## Blanks or unusual timestamps during review
+
+Genuine missing data and reconnect gaps remain blank. Version 0.5.0 corrects blanking caused by small timestamp differences between adjacent recorded seconds. Very early windows can still display negative axis timestamps before radio uptime zero. Times are not flight-timer readings. See [history behavior](TELEMETRY.md#history-review).

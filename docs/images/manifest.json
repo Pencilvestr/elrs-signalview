@@ -304,6 +304,36 @@
       "source_sha256": "94c9b6447de119b3c6ad9a9d24dbd010d9b15915fe44f0c34234ecf4f587e990",
       "synthetic_telemetry": true,
       "synthetic_module_version": true
+    },
+    {
+      "file": "history-review-demo.gif",
+      "size": [
+        800,
+        532
+      ],
+      "sha256": "9ecad39fa9d4707cd1a2463396273d41aac01e7ca9a3c28d4e3f80304a3ee9f2",
+      "origin": "0.5.0 native MK3 history-review walkthrough; synthetic telemetry and scripted navigation",
+      "captured_date": "2026-11-10",
+      "source_sha256": "7717faeb842c84a1ecfab652dd7af64db35e64d33c800449a4e72e95c589a084",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true,
+      "scripted_navigation": true,
+      "caption_overlay": true
+    },
+    {
+      "file": "history-review.png",
+      "size": [
+        800,
+        480
+      ],
+      "sha256": "b5d5f219ce1fe5cff483e9453de2ac287a6affd8d9a1922c513801f7d2bfde1f",
+      "origin": "0.5.0 native MK3 history-review walkthrough; synthetic telemetry and scripted navigation",
+      "captured_date": "2026-11-10",
+      "source_sha256": "7717faeb842c84a1ecfab652dd7af64db35e64d33c800449a4e72e95c589a084",
+      "synthetic_telemetry": true,
+      "synthetic_module_version": true,
+      "scripted_navigation": true,
+      "caption_overlay": false
     }
   ]
 }

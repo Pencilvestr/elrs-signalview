@@ -29,6 +29,6 @@ Suggested topics: `edgetx`, `expresslrs`, `lua`, `telemetry`, `radiomaster`, `wi
 
 Enable Issues and GitHub Actions. Optionally enable Discussions and private vulnerability reporting. The included workflow is read-only and does not publish or create tags automatically. It checks source syntax, repository links/assets and release packaging. Native tests remain a documented Windows procedure.
 
-Use a tag matching the version, such as `v0.2.0`. Stable releases must not be marked as prereleases; use the prerelease label for beta tags. Upload the install ZIP and its SHA-256 file. Paste [the prepared release notes](RELEASE-NOTES.md) after confirming they match the final test record. Keep source archives distinct from the install ZIP.
+Use a tag matching the version, such as `v0.5.0`. Stable releases must not be marked as prereleases; use the prerelease label for beta tags. Upload the install ZIP and its SHA-256 file. Paste [the prepared release notes](RELEASE-NOTES.md) after confirming they match the final test record. Keep source archives distinct from the install ZIP.
 
 Publishing is a separate action from preparing this repository. Do not claim a repository, tag, CI run or release exists until it has actually been created and checked.

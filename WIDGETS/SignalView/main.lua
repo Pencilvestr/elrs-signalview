@@ -1,4 +1,214 @@
--- ELRS SignalView 0.4.0. Original implementation, MIT licensed.
+-- ELRS SignalView 0.5.0. Original implementation, MIT licensed.
+local Review=(function()
+-- Bounded, in-memory history archive.
+-- Parallel columns avoid a table, colors table and layout cache per second.
+local Review = {capacity=901}
+local function newArchive()
+  return {head=0,count=0,time={},quality={},rx1={},rx2={},
+    color1={},color2={},color3={},breaks={},antenna={}}
+end
+local function slot(archive, ordinal)
+  return (archive.head-archive.count+ordinal-1)%Review.capacity+1
+end
+function Review.record(widget)
+  local now=widget.sampleTime
+  if not now then return end
+  if widget.archiveClock and now<widget.archiveClock then widget.archive=nil;Review.resetInput(widget) end
+  widget.archiveClock=now
+  if widget.lossSince or not widget.plotHistory then return end
+  local point=widget.plotHistory[#widget.plotHistory]
+  if not point then return end
+  local archive=widget.archive
+  if not archive then archive=newArchive();widget.archive=archive end
+  local sameSecond=archive.count>0 and math.floor(archive.time[archive.head]/100)==point.second
+  if not sameSecond then
+    archive.head=archive.head%Review.capacity+1
+    archive.count=math.min(Review.capacity,archive.count+1)
+    archive.time[archive.head]=point.time
+    archive.breaks[archive.head]=point.breakBefore or false
+  end
+  local index=archive.head
+  -- A reconnection within the same second makes that whole summary a gap.
+  -- Do not join two independent connections or fabricate simultaneous minima.
+  local gap=sameSecond and (point.breakBefore or archive.sameSecondGap)
+  archive.sameSecondGap=gap or false
+  if not sameSecond then archive.sameSecondGap=false end
+  archive.quality[index]=not gap and point[1] or nil
+  archive.rx1[index]=not gap and point[2] or nil
+  archive.rx2[index]=not gap and point[3] or nil
+  archive.color1[index]=point.colors[1]
+  archive.color2[index]=point.colors[2]
+  archive.color3[index]=point.colors[3]
+  archive.breaks[index]=archive.breaks[index] or gap or false
+  local antenna=widget.antenna
+  -- Preserve both availability and the chosen path without another array.
+  -- 1/2 = single path 1/2; 3/4 = dual with selected path 1/2.
+  archive.antenna[index]=antenna and ((antenna.dual and 2 or 0)+antenna.selected) or 1
+end
+function Review.window(widget, requestedEnd)
+  local archive=widget.archive
+  if not archive or archive.count==0 then return nil end
+  local newest=archive.time[archive.head]
+  local oldest=math.max(newest-90000,archive.time[slot(archive,1)])
+  local endpoint=math.max(oldest,math.min(newest,requestedEnd))
+  -- Binary search touches logarithmically many records even after hours.
+  local low,high=1,archive.count
+  while low<=high do
+    local middle=math.floor((low+high)/2)
+    if archive.time[slot(archive,middle)]<endpoint-3000 then low=middle+1
+    else high=middle-1 end
+  end
+  local output=widget.reviewBuffer or {}
+  widget.reviewBuffer=output
+  local count=0
+  for ordinal=math.max(1,low-1),archive.count do
+    local index=slot(archive,ordinal)
+    if archive.time[index]>endpoint then break end
+    count=count+1
+    local point=output[count] or {colors={}}
+    output[count]=point
+    -- X is recomputed by the renderer. Cached Y remains valid while values,
+    -- dimensions and graph selection are unchanged, even when time moves.
+    if point[1]~=archive.quality[index] or point[2]~=archive.rx1[index] or point[3]~=archive.rx2[index] then
+      point.layoutW=nil
+    end
+    point.time=archive.time[index]
+    point[1],point[2],point[3]=archive.quality[index],archive.rx1[index],archive.rx2[index]
+    point.colors[1],point.colors[2],point.colors[3]=archive.color1[index],archive.color2[index],archive.color3[index]
+    point.breakBefore=archive.breaks[index]
+    point.antenna=archive.antenna[index]
+    if count==32 then break end
+  end
+  for index=#output,count+1,-1 do output[index]=nil end
+  local validUntil
+  if count>0 then
+    local selected=output[count]
+    validUntil=selected.time+100
+    local nextOrdinal=math.max(1,low-1)+count
+    if nextOrdinal<=archive.count then
+      local nextIndex=slot(archive,nextOrdinal)
+      local nextTime=archive.time[nextIndex]
+      -- Bucket timestamps follow callback timing, not exact second boundaries.
+      -- Bridge only jitter into the adjacent recorded second, never a missing
+      -- second or a known reconnection. Individual missing values stay missing.
+      if nextTime>validUntil and not archive.breaks[nextIndex]
+        and math.floor(nextTime/100)==math.floor(selected.time/100)+1 then
+        validUntil=nextTime
+      end
+    end
+  end
+  return output,endpoint,oldest,newest,validUntil
+end
+function Review.timeLabel(ticks)
+  local seconds=math.floor(ticks/100)
+  return string.format('%02d:%02d',math.floor(seconds/60),seconds%60)
+end
+return Review
+
+end)()
+-- Deliberate, full-screen-only entry. Touch activation happens on release so
+-- the entry gesture cannot also drag history or activate a footer control.
+local HOLD_TICKS=100
+local STEP_TICKS=100
+local function matches(event, constant)
+  return constant~=nil and event==constant
+end
+function Review.resetInput(w)
+  w.reviewEndpoint=nil
+  w.reviewPress=nil
+  w.reviewDrag=nil
+  w.reviewAcceptAfter=nil
+  w.reviewFullSince=nil
+end
+local function bounds(width,height)
+  if width>=600 then return 60,218+28,width-27,height-104,height-64,24 end
+  return 42,(height>width and 126 or 108)+17,width-10,height-62,height-36,8
+end
+local function inside(touch,left,top,right,bottom)
+  return touch and touch.x>=left and touch.x<=right and touch.y>=top and touch.y<=bottom
+end
+local function clamp(w,time)
+  local archive=w.archive
+  local first=(archive.head-archive.count)%Review.capacity+1
+  local newest=archive.time[archive.head]
+  return math.max(math.max(archive.time[first],newest-90000),math.min(newest,time))
+end
+local function enter(w)
+  if not w.archive or w.archive.count<2 then return false end
+  w.reviewEndpoint=w.archive.time[w.archive.head]
+  return true
+end
+function Review.input(w,event,touch,width,height)
+  w.reviewFullSince=w.reviewFullSince or getTime()
+  if w.reviewPress and w.reviewPress.released and getTime()-w.reviewPress.released>20 then w.reviewPress=nil end
+  local left,top,right,bottom,footer,padding=bounds(width,height)
+  if matches(event,EVT_VIRTUAL_EXIT) and w.reviewEndpoint then
+    Review.resetInput(w)
+    return true
+  end
+  if w.reviewAcceptAfter and getTime()<w.reviewAcceptAfter then return true end
+  if not w.reviewEndpoint then
+    if matches(event,EVT_VIRTUAL_ENTER_LONG) and not touch then
+      -- EdgeTX consumes the Enter-down/release events around a long press.
+      -- Require a settled full-screen view and absorb immediately queued input.
+      if getTime()-w.reviewFullSince>=HOLD_TICKS and enter(w) then w.reviewAcceptAfter=getTime()+30 end
+      w.reviewPress=nil
+      return true
+    end
+    if matches(event,EVT_TOUCH_FIRST) then
+      w.reviewPress=inside(touch,left,top,right,bottom) and {time=getTime(),x=touch.x,y=touch.y,lastX=touch.x,lastY=touch.y} or nil
+    elseif matches(event,EVT_TOUCH_SLIDE) then
+      local press=w.reviewPress
+      if press and touch then
+        if math.abs(touch.x-press.x)>8 or math.abs(touch.y-press.y)>8 or not inside(touch,left,top,right,bottom) then
+          w.reviewPress=nil
+        else press.lastX=touch.x;press.lastY=touch.y end
+      end
+    elseif matches(event,EVT_TOUCH_BREAK) or matches(event,EVT_TOUCH_TAP) then
+      local press=w.reviewPress
+      w.reviewPress=nil
+      if press and matches(event,EVT_TOUCH_BREAK) and getTime()-press.time>=HOLD_TICKS
+        and inside({x=press.lastX,y=press.lastY},left,top,right,bottom) then
+        enter(w)
+      end
+    end
+    return false
+  end
+  w.reviewEndpoint=clamp(w,w.reviewEndpoint)
+  if matches(event,EVT_VIRTUAL_PREV) or matches(event,EVT_VIRTUAL_PREV_REPT)
+    or matches(event,EVT_UP_FIRST) or matches(event,EVT_UP_REPT) then
+    w.reviewEndpoint=clamp(w,w.reviewEndpoint-STEP_TICKS)
+  elseif matches(event,EVT_VIRTUAL_NEXT) or matches(event,EVT_VIRTUAL_NEXT_REPT)
+    or matches(event,EVT_DOWN_FIRST) or matches(event,EVT_DOWN_REPT) then
+    w.reviewEndpoint=clamp(w,w.reviewEndpoint+STEP_TICKS)
+  elseif matches(event,EVT_TOUCH_FIRST) then
+    w.reviewDrag=inside(touch,left,top,right,bottom) and {x=touch.x,time=w.reviewEndpoint} or nil
+    w.reviewPress=touch and {time=getTime(),x=touch.x,y=touch.y} or nil
+  elseif matches(event,EVT_TOUCH_SLIDE) then
+    if w.reviewPress and touch and (math.abs(touch.x-w.reviewPress.x)>8 or math.abs(touch.y-w.reviewPress.y)>8) then w.reviewPress=nil end
+    if w.reviewDrag and touch then
+      w.reviewEndpoint=clamp(w,w.reviewDrag.time-(touch.x-w.reviewDrag.x)*3000/(right-left))
+    end
+  elseif matches(event,EVT_TOUCH_BREAK) then
+    w.reviewDrag=nil
+    -- EdgeTX sends BREAK (with zero coordinates), then TAP for a short tap.
+    if w.reviewPress then w.reviewPress.released=getTime() end
+  elseif matches(event,EVT_TOUCH_TAP) then
+    local press=w.reviewPress
+    w.reviewPress=nil
+    w.reviewDrag=nil
+    if press and getTime()-press.time<70 and inside(touch,padding,footer,width-padding,height)
+      and press.y>=footer and math.abs(touch.x-press.x)<=8 and math.abs(touch.y-press.y)<=8 then
+      local column=math.floor((touch.x-padding)*4/(width-padding*2))+1
+      if column==1 then w.reviewEndpoint=clamp(w,w.reviewEndpoint-STEP_TICKS)
+      elseif column==2 then w.reviewEndpoint=clamp(w,w.reviewEndpoint+STEP_TICKS)
+      elseif column==4 then Review.resetInput(w) end
+    end
+  end
+  return false
+end
+
+-- Live dashboard and telemetry implementation.
 -- Main readings use EdgeTX source APIs. A bounded foreground CRSF device-info
 -- query discovers the TX module version. No model or RF setting writes occur.
 -- Install as /WIDGETS/SignalView/main.lua; see docs/DEVELOPMENT.md for the map.
@@ -326,6 +536,12 @@ sample=function(w)
   -- left edge, rather than dropping the entire crossing segment each second.
   while #plots>32 or (#plots>1 and plots[2].time<=now-3000) do table.remove(plots,1) end
 end
+local originalSample=sample
+sample=function(w)
+  local previous=w.sampleTime
+  originalSample(w)
+  if previous~=w.sampleTime then Review.record(w) end
+end
 -- Translate public setting labels to internal keys. Copy, rather than mutate,
 -- EdgeTX's options table so widget instances cannot share accidental changes.
 -- Legacy internal keys are accepted for existing development tests/settings.
@@ -503,7 +719,7 @@ end
 -- Recompute Y when a bucket, history selection or widget size changes. Cache
 -- per instance/bucket; changing screen origin does not change local geometry.
 local function preparePlot(w,W,H,left,right,rxTop,rxHeight,lqTop,lqHeight)
-  local now=w.lossSince and w.historyEnd or getTime()
+  local now=w.reviewTime or (w.lossSince and w.historyEnd or getTime())
   for _,point in ipairs(w.plotHistory or {}) do
     point.screenX=left+(point.time-(now-3000))/3000*(right-left)
     if point.layoutW~=W or point.layoutH~=H or point.layoutHistory~=w.options.History then
@@ -546,7 +762,7 @@ local function compactDashboard(w,W,H)
   preparePlot(w,W,H,left,right,chartTop+17,panelH-21,lqTop,panelH-21)
   local q=w.sensors[1]
   text(p,6,versionHeader(w),SMLSIZE)
-  text(W-p,6,w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry')),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
+  text(W-p,6,w.reviewTime and 'HISTORY REVIEW' or w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (q.current and 'Telemetry current' or 'No current telemetry')),SMLSIZE+RIGHT,q.current and C.accent or C.warn)
   rect(p,24,W-p*2,1,C.text)
   text(p,top,'Link Quality',SMLSIZE,C.muted)
   text(mid,top,'Receiver Signal',SMLSIZE,C.muted)
@@ -562,7 +778,7 @@ local function compactDashboard(w,W,H)
   end
   local warning,critical,mode=thresholds(w)
   local modeText=warning and ((w.options.RSSImode==0 and 'Auto ' or 'Manual ')..warning..'/'..critical) or mode
-  local frozen=frozenLabel(w)
+  local frozen=w.reviewTime and ('1 s minima @ '..Review.timeLabel(w.reviewTime)) or frozenLabel(w)
   text(W-p,portrait and 100 or 89,frozen or modeText,SMLSIZE+RIGHT,frozen and C.warn or C.muted)
   local by=portrait and 103 or 92
   local bw=math.floor(W*.32)
@@ -604,10 +820,17 @@ local function compactDashboard(w,W,H)
       end
     end
   end
-  text(left,timeY,'-30 s',SMLSIZE,C.muted)
-  text((left+right)/2,timeY,'-15 s',SMLSIZE,C.muted)
-  text(right,timeY,'Now',SMLSIZE+RIGHT,C.muted)
+  text(left,timeY,(w.reviewTime and Review.timeLabel(w.reviewTime-3000) or '-30 s'),SMLSIZE,C.muted)
+  text((left+right)/2,timeY,(w.reviewTime and Review.timeLabel(w.reviewTime-1500) or '-15 s'),SMLSIZE,C.muted)
+  text(right,timeY,(w.reviewTime and Review.timeLabel(w.reviewTime) or 'Now'),SMLSIZE+RIGHT,C.muted)
   rect(p,footer-3,W-p*2,1,C.text)
+  if w.reviewTime then
+    local labels={'< Earlier','Later >','At '..Review.timeLabel(w.reviewTime),'LIVE'}
+    for i,label in ipairs(labels) do
+      text(p+(i-0.5)*(W-p*2)/4,footer+10,label,SMLSIZE+CENTER,i==4 and C.accent or C.text)
+    end
+    return
+  end
   for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-p*2)/4
     if field[1]==5 then drawRFMode(w,x,footer+2,(W-p*2)/4,true)
@@ -632,7 +855,7 @@ local function dashboard(w,W,H)
   local mid=math.floor(W/2)+p/2
   text(p,12,versionHeader(w),wide and MIDSIZE or small)
   local current=w.sensors[1].current
-  text(W-p,16,w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (current and 'Telemetry current' or 'No current telemetry')),small+RIGHT,current and C.accent or C.warn)
+  text(W-p,16,w.reviewTime and 'HISTORY REVIEW' or w.lossSince and 'Link data lost' or (w.options.LQcrit>=w.options.LQwarn and 'Check LQ settings' or (current and 'Telemetry current' or 'No current telemetry')),small+RIGHT,current and C.accent or C.warn)
   rect(p,wide and 53 or 37,W-2*p,2,C.text)
   text(p,top,'Link Quality',small,C.muted)
   text(mid,top,'Receiver Signal',small,C.muted)
@@ -650,7 +873,7 @@ local function dashboard(w,W,H)
   local barY=chartTop-22
   local warning,critical,modeLabel=thresholds(w)
   -- Leave clear space below the small-font descenders and above the divider.
-  local frozen=frozenLabel(w)
+  local frozen=w.reviewTime and ('1 s minima @ '..Review.timeLabel(w.reviewTime)) or frozenLabel(w)
   text(W-p,barY-12,frozen or (modeLabel..(warning and (' '..warning..' / '..critical) or '')),small+RIGHT,frozen and C.warn or C.muted)
   local barW=math.floor(W*.34)
   rect(p,barY,barW,6,C.card)
@@ -698,10 +921,17 @@ local function dashboard(w,W,H)
       end
     end
   end
-  text(left,footer-33,'-30 s',small,C.muted)
-  text((left+right)/2,footer-33,'-15 s',small,C.muted)
-  text(right,footer-33,'Now',small+RIGHT,C.muted)
+  text(left,footer-33,(w.reviewTime and Review.timeLabel(w.reviewTime-3000) or '-30 s'),small,C.muted)
+  text((left+right)/2,footer-33,(w.reviewTime and Review.timeLabel(w.reviewTime-1500) or '-15 s'),small,C.muted)
+  text(right,footer-33,(w.reviewTime and Review.timeLabel(w.reviewTime) or 'Now'),small+RIGHT,C.muted)
   rect(p,footer-5,W-2*p,2,C.text)
+  if w.reviewTime then
+    local labels={'< Earlier','Later >','At '..Review.timeLabel(w.reviewTime),'LIVE'}
+    for i,label in ipairs(labels) do
+      text(p+(i-0.5)*(W-p*2)/4,footer+10,label,SMLSIZE+CENTER,i==4 and C.accent or C.text)
+    end
+    return
+  end
   for i,field in ipairs(w.options.footer) do
     local x=p+(i-0.5)*(W-2*p)/4
     if field[1]==5 then drawRFMode(w,x,footer+3,(W-2*p)/4,false)
@@ -713,6 +943,35 @@ local function dashboard(w,W,H)
   end
 end
 
+function Review.render(w,endpoint)
+  local points,finish,oldest,newest,validUntil=Review.window(w,endpoint)
+  if not points or #points==0 then return end
+  local view=w.reviewView
+  if not view then
+    view={sensors={},displayColors={},antenna={}}
+    for i=1,10 do view.sensors[i]={} end
+    w.reviewView=view
+  end
+  view.options=w.options
+  view.moduleVersion=w.moduleVersion
+  view.moduleMajor=w.moduleMajor
+  view.reviewTime=finish
+  view.plotHistory=points
+  local selected=points[#points]
+  local current=finish<validUntil
+  -- Codes 1/2 are single paths; 3/4 retain the selected path in dual state.
+  view.antenna.dual=selected.antenna>=3
+  view.antenna.selected=(selected.antenna-1)%2+1
+  for i=1,3 do
+    view.sensors[i].value=current and selected[i] or nil
+    view.sensors[i].current=current and selected[i]~=nil
+    view.displayColors[i]=current and selected.colors[i] or C.muted
+  end
+  drawPalette=w.options.Theme==2 and ivory or (w.options.Theme==3 and white or nil)
+  originX,originY=0,0
+  rect(0,0,LCD_W,LCD_H,C.bg)
+  dashboard(view,LCD_W,LCD_H)
+end
 -- EdgeTX supplies events only in full screen. Normal areas must be almost the
 -- whole screen: small/multi-widget zones stay blank, with no prompt or preview.
 local function refresh(w,event,touch)
@@ -720,6 +979,7 @@ local function refresh(w,event,touch)
   drawPalette=w.options.Theme==2 and ivory or (w.options.Theme==3 and white or nil)
   sample(w)
   local full=event~=nil
+  if not full then Review.resetInput(w) end
   local width,height
   if full then originX,originY=0,0;width,height=LCD_W,LCD_H
   else originX,originY=w.zone.x,w.zone.y;width,height=w.zone.w,w.zone.h end
@@ -727,6 +987,11 @@ local function refresh(w,event,touch)
   local large=width>=LCD_W*0.95 and height>=LCD_H*0.95 and width>=300 and height>=240
   if not full and not large then return end
   discoverVersion(w)
+  if full then
+    local consumed=Review.input(w,event,touch,width,height)
+    if w.reviewEndpoint then Review.render(w,w.reviewEndpoint);return end
+    if consumed then dashboard(w,width,height);return end
+  else Review.resetInput(w) end
   if EVT_VIRTUAL_EXIT and event == EVT_VIRTUAL_EXIT and lcd.exitFullScreen then
     lcd.exitFullScreen()
     return
@@ -734,9 +999,9 @@ local function refresh(w,event,touch)
   dashboard(w,width,height)
 end
 return {
-  name="SignalView", options={{"Theme",CHOICE or STRING,CHOICE and 1 or "Dark",{"Dark","Rich Ivory","White"}},{ "LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Manual","Off"}},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}},{"History",CHOICE or STRING,CHOICE and 1 or "Both",{"Both","Receiver Signal","Link Quality"}}}, create=create,
+  review=Review, name="SignalView", options={{"Theme",CHOICE or STRING,CHOICE and 1 or "Dark",{"Dark","Rich Ivory","White"}},{ "LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Manual","Off"}},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}},{"History",CHOICE or STRING,CHOICE and 1 or "Both",{"Both","Receiver Signal","Link Quality"}}}, create=create,
   update=function(w,options) w.options=defaults(options);scan(w) end,
-  refresh=refresh, background=sample
+  refresh=refresh, background=function(w) Review.resetInput(w);sample(w) end
 }
 
 

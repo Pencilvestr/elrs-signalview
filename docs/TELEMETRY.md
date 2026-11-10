@@ -61,3 +61,15 @@ The header shows `ELRS 4.0.0`, for example, or `ELRS 4.x dev` for unknown minor/
 Unlike normal sensor acquisition, discovery consumes the shared CRSF Lua queue. Avoid another CRSF-querying widget during discovery. Coexistence with arbitrary other CRSF Lua consumers and simultaneous internal/external CRSF modules has not been validated. SignalView sends no parameter writes, bind commands or power/rate changes.
 
 Reference: [CRSF Device Info specification](https://github.com/crsf-wg/crsf/wiki/CRSF_FRAMETYPE_DEVICE_INFO).
+
+## History review
+
+Version 0.5.0 retains up to 15 minutes in a bounded 901-record rolling archive. Each record contains one-second minimum Link Quality and RSSI values, their recorded colors, gaps and antenna state. Minima for different fields can occur at different moments. RF mode, transmit power and other footer readings are not archived.
+
+Review is available only in full screen. Hold a graph for one second and release, or hold Enter. Once in review, wheel/navigation steps and Earlier/Later move by one second; dragging the graph moves the window. Short Exit or Live restores the live display. The next Exit leaves full screen. Movement during the entry hold cancels it, and a short tap does not enter review.
+
+The main readings show the selected historical record. Recording continues, so a selected window that ages out advances to the earliest retained time. During complete telemetry loss the archive is retained; once recording resumes, the available range follows the newest data. A long outage can therefore place older data outside the 15-minute range after reconnection. Restarting/recreating the widget clears the in-memory archive. There is no SD-card logging or session-clear command in this release.
+
+Normal timestamp jitter between adjacent recorded seconds does not blank the main readings. Missing seconds, known reconnections and individual unavailable values remain gaps. Review never fills them with invented readings.
+
+Review timestamps are radio uptime, not flight duration. Very early windows can show negative axis labels such as `-1:50` before uptime zero; this display limitation does not change stored values. Module-discovery timeout and Auto RSSI version requirements are unchanged from 0.4.0.

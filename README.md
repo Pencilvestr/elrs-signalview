@@ -2,15 +2,17 @@
 
 A receiver-signal and Link Quality dashboard for EdgeTX color-screen radios using ExpressLRS telemetry.
 
-**Version 0.4.0.**
+**Version 0.5.0.**
 
-[Download SignalView](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.4.0/elrs-signalview-0.4.0.zip) · [Release notes](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.4.0)
+[Download SignalView](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.5.0/elrs-signalview-0.5.0.zip) · [Release notes](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.5.0)
 
 ![SignalView starts disconnected, connects, and shows changing readings and colored history](docs/images/signalview-demo.gif)
 
 *Native EdgeTX 2.12.5 simulator capture. The loop starts disconnected, then shows synthetic signal changes, warning colors, scrolling history and changing footer values.*
 
 ## Features
+
+- **15-minute history review:** inspect recorded receiver signal and Link Quality in full screen. Recording continues while you review; the oldest data rolls off automatically.
 
 - **Three themes:** Dark, Rich Ivory and White. Dark is the default.
 - **Selectable history:** show both graphs, Receiver Signal only or Link Quality only. Single graphs use the full history area; switching views retains the recorded data.
@@ -24,7 +26,7 @@ Use full screen or a single near-full-screen widget area with the **EdgeTX top b
 
 ## Install and update
 
-Download the [0.4.0 installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.4.0/elrs-signalview-0.4.0.zip). Use this package rather than GitHub's source-code archive.
+Download the [0.5.0 installation ZIP](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.5.0/elrs-signalview-0.5.0.zip). Use this package rather than GitHub's source-code archive.
 
 1. Back up your model settings and SD card.
 2. Copy the package's `WIDGETS/SignalView` folder into the SD card's existing `WIDGETS` directory.
@@ -34,11 +36,25 @@ Download the [0.4.0 installation ZIP](https://github.com/Pencilvestr/elrs-signal
 
 When updating:
 
+- **From 0.4.0:** replace the Lua and restart. Existing widget settings are retained.
+
 - **Upgrading from 0.3.0 or a build without Theme first:** record your settings and remove the old widget instance. After replacing the Lua and restarting, add SignalView again and restore the settings. EdgeTX stores widget options by position.
 - **Updating a recent build with Theme already first:** replace the Lua and restart. Adding History preserves the existing option positions.
 - **RSSI mode changed from text to a dropdown:** this field initializes to Auto on upgrade. Reselect Manual or Off if required.
 
 See [installation, bench checks and rollback](docs/INSTALLATION.md).
+
+## Review a flight
+
+Open SignalView in **full screen**. Hold a graph for one second, then release, or hold Enter. Use the wheel, supported navigation controls or drag the graph to move through recorded data. Earlier/Later controls step by one second; short Exit or Live returns to live readings. Ordinary taps and wheel movements do not enter review.
+
+Review shows a 30-second window within up to 15 minutes of retained history. Main readings show the recorded one-second minima at the selected time; the footer becomes review controls. The values are summaries, not synchronized raw telemetry samples. Times are radio uptime. Data stays in memory only and clears on restart or widget recreation. The large normal widget area supports the live dashboard; review requires full screen.
+
+![Simulated connection, signal changes, telemetry loss and history review](docs/images/history-review-demo.gif)
+
+*Native 0.5.0 MK3 capture with synthetic telemetry and scripted navigation. The loop starts disconnected; the simulated flight runs at 4x speed.*
+
+See [history behavior and limitations](docs/TELEMETRY.md#history-review) for gaps, rolling retention and early time labels.
 
 ## Settings
 
@@ -57,7 +73,7 @@ Open **Widget Settings**. Choices are stored per widget instance in the model.
 | Antennas | Auto | Auto / Single / Dual |
 | History | Both | Both / Receiver Signal / Link Quality |
 
-Automatic RSSI thresholds use the current **ELRS 4.x** RF mode's sensitivity limit plus 10 dB for amber and plus 5 dB for red. For ELRS 3.x, use Manual or Off. Unknown modes or unsupported versions show that Auto is unavailable rather than guessing a threshold. RF-mode names and automatic RSSI thresholds have different version support.
+Automatic RSSI thresholds use the current **ELRS 4.x** RF mode's sensitivity limit plus 10 dB for amber and plus 5 dB for red. For ELRS 3.x, use Manual or Off. Unknown modes or detected unsupported versions show that Auto is unavailable. If the module version has not been discovered, use Auto only when you have independently confirmed ELRS 4.x. RF-mode names and automatic RSSI thresholds have different version support.
 
 Auto antenna display infers usable telemetry paths, not the physical antenna count. Both paths must qualify together for one second before first showing dual view. Established dual view survives partial dropouts. After complete link-data loss, five continuous seconds with only one usable path switches back to single view; both paths qualifying for one second restores or retains dual view.
 
@@ -83,6 +99,12 @@ Healthy readings are white in Dark and dark text in the light themes. Normal rec
 
 The main readings and footer stay in place. Receiver-only history retains both antenna traces when dual view is active. Both histories continue to be collected in the same bounded buffer.
 
+### Reviewing recorded data
+
+![Recorded signal and Link Quality in full-screen review](docs/images/history-review.png)
+
+Main readings show the selected historical second. The footer provides review controls instead of live telemetry values.
+
 ### Telemetry loss
 
 ![Frozen history after telemetry becomes unavailable](docs/images/mk3-stale.png)
@@ -97,10 +119,10 @@ This is a running list of physical-radio reports. A report applies to the tested
 
 | Radio | Module / ELRS | EdgeTX | Reported testing |
 | --- | --- | --- | --- |
-| RadioMaster TX16S MK3 | Internal ELRS 4.0.0 | 2.12.5 | Maintainer confirmed the 0.3.0 release candidate and subsequently tested 0.4.0 development builds. Physical confirmation of the final RSSI dropdown change is pending. |
+| RadioMaster TX16S MK3 | Internal ELRS 4.0.0 | 2.12.5 | Maintainer reported three separate 10-minute bench tests of the 0.5.0 history-review build with no issues on November 10, 2026. The release changes only version/comment text from that tested Lua. |
 | PA01 | ELRS 4.1.0; module unspecified | Unknown | Community tester reported published 0.3.0 working correctly; report confirmed by the maintainer. |
 
-Receiver models, receiver firmware, test duration and in-flight validation have not been recorded. Please include these details in new hardware reports.
+Receiver models, receiver firmware and in-flight validation have not been recorded. The MK3 report is three separate 10-minute tests, not a continuous 30-minute run. Please include these details in new hardware reports.
 
 ## Known Issues
 
