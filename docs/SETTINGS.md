@@ -89,7 +89,7 @@ More-negative dBm values mean weaker signal. A single fixed dBm alarm is not app
 
 ### Auto
 
-The current numeric RFMD must be available and current. SignalView uses its ELRS 4.x sensitivity table:
+In 0.5.1, the module must be identified as ELRS 4.x and the numeric RFMD must be available and current. SignalView uses its ELRS 4.x sensitivity table:
 
 - Amber starts at sensitivity +10 dB.
 - Red starts at sensitivity +5 dB.
@@ -98,7 +98,7 @@ These are inclusive boundaries. For sensitivity -108 dBm, raw readings above -98
 
 The two-stage policy derives from ELRS's recommended [5–10 dB warning margin](https://www.expresslrs.org/info/signal-health/#rssi-sensitivity-limit). It does not measure remaining range or guarantee that packets can be decoded.
 
-The complete RFMD table and its reference are in [RF modes](RF-MODES.md). Unknown/missing/stale modes display `RSSI auto unavailable`. A detected firmware major other than 4 displays `Auto needs ELRS 4.x`. The absence of a detected version does not prove that the connected module uses 4.x; use Auto only when you have confirmed that independently.
+The complete RFMD table and its reference are in [RF modes](RF-MODES.md). Unknown/missing/stale modes display `RSSI auto unavailable`. Unknown module versions and detected firmware majors other than 4 display `Auto needs ELRS 4.x`, with muted RSSI colors. Manual and Off work without module-version discovery. Version 0.5.0 allowed an unknown module version to use the 4.x table; 0.5.1 waits for a confirmed version.
 
 ### Manual
 

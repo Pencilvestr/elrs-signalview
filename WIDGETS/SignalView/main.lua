@@ -1,4 +1,4 @@
--- ELRS SignalView 0.5.0. Original implementation, MIT licensed.
+-- ELRS SignalView 0.5.1. Original implementation, MIT licensed.
 local Review=(function()
 -- Bounded, in-memory history archive.
 -- Parallel columns avoid a table, colors table and layout cache per second.
@@ -30,7 +30,10 @@ function Review.record(widget)
   local index=archive.head
   -- A reconnection within the same second makes that whole summary a gap.
   -- Do not join two independent connections or fabricate simultaneous minima.
-  local gap=sameSecond and (point.breakBefore or archive.sameSecondGap)
+  -- breakBefore belongs to the bucket boundary and remains true on later
+  -- samples. Only a different bucket timestamp inside this archived second
+  -- denotes a new connection; ordinary updates must retain their readings.
+  local gap=sameSecond and (point.time~=archive.time[index] or archive.sameSecondGap)
   archive.sameSecondGap=gap or false
   if not sameSecond then archive.sameSecondGap=false end
   archive.quality[index]=not gap and point[1] or nil
@@ -282,22 +285,29 @@ local drawPalette
 -- after widget creation. A name existing does not imply its value is current.
 local function scan(w)
   -- Resolve discovered names without consuming the shared CRSF telemetry queue.
+  local now=getTime()
   local missing=false
   for _,sensor in ipairs(w.sensors) do
-    local info=getFieldInfo(sensor.name)
+    local info=getFieldInfo(sensor.lookupName or sensor.name)
     sensor.id=info and info.id or nil
     if not sensor.id then missing=true end
   end
   -- Direct lookups avoid enumerating every stick/channel/source in the common
   -- case. Keep case-insensitive enumeration for undiscovered/legacy names.
-  if missing and sources then
+  -- Optional absent fields must not force a full source enumeration every
+  -- two seconds. Exact names remain on the normal cadence; legacy-name
+  -- fallback retries at most every ten seconds, including clock rollback.
+  if missing and sources and (not w.fallbackScanTime or now<w.fallbackScanTime or now-w.fallbackScanTime>=1000) then
+    w.fallbackScanTime=now
     for id,name in sources() do
       local index=sensorIndexByName[string.lower(name)]
-      if index and not w.sensors[index].id then w.sensors[index].id=id end
+      if index and not w.sensors[index].id then
+        w.sensors[index].id=id;w.sensors[index].lookupName=name
+      end
     end
   end
   resolveFooter(w)
-  w.scanTime = getTime()
+  w.scanTime = now
 end
 -- Rate-limit acquisition independently of screen refresh; EdgeTX scheduling
 -- may provide fewer than five calls per second. Respect firmware freshness.
@@ -375,7 +385,7 @@ local function thresholds(w)
     if w.options.RSSIcrit>=w.options.RSSIwarn then return nil,nil,'RSSI settings invalid' end
     return w.options.RSSIwarn,w.options.RSSIcrit,'RSSI manual'
   end
-  if w.moduleMajor and w.moduleMajor~=4 then return nil,nil,'Auto needs ELRS 4.x' end
+  if w.moduleMajor~=4 then return nil,nil,'Auto needs ELRS 4.x' end
   local s=w.sensors[5]
   local limit=s.current and type(s.value)=='number' and sensitivity[s.value]
   if not limit then return nil,nil,'RSSI auto unavailable' end
@@ -488,7 +498,10 @@ sample=function(w)
   if previous and now<previous then
     w.plotHistory=nil;w.historyEnd=nil;w.lossSince=nil
   end
-  local point={time=now,colors={}}
+  -- Only the latest diagnostic sample is retained; buckets copy scalars.
+  -- Reuse these two tables instead of allocating them at every acquisition.
+  local point=w.lastSample or {colors={}}
+  point.time=now
   w.lastSample=point
   w.displayColors=w.displayColors or {}
   local warning,critical=thresholds(w)
@@ -500,6 +513,8 @@ sample=function(w)
     if available then
       point[i]=s.value
       point.colors[i]=color
+    else
+      point[i]=nil;point.colors[i]=nil
     end
     w.displayColors[i]=smooth(w,i,color,now,warning,critical)
   end
@@ -521,7 +536,10 @@ sample=function(w)
   local bucket=plots[#plots]
   local second=math.floor(now/100)
   if reconnect or not bucket or bucket.second~=second then
-    bucket={time=now,second=second,seq=second,colors={},gap={},breakBefore=reconnect}
+    -- Do not interpolate across seconds when acquisition did not run. Adjacent
+    -- second buckets can still have normal callback-timing jitter.
+    local discontinuity=reconnect or (bucket~=nil and second>bucket.second+1)
+    bucket={time=now,second=second,seq=second,colors={},gap={},breakBefore=discontinuity}
     plots[#plots+1]=bucket
   end
   w.historyEnd=bucket.time
@@ -609,20 +627,36 @@ end
 -- Directed Device Ping (0x28) / Device Info (0x29), not a settings request.
 -- Check handset destination, TX origin and the ELRS serial signature before
 -- accepting software bytes. Cache only for this widget's lifetime; no disk IO.
+local VERSION_MAX_PINGS,VERSION_MAX_READS=6,102
 local function discoverVersion(w)
   if w.moduleVersion or not crossfireTelemetryPush or not crossfireTelemetryPop then return end
   local now=getTime()
-  w.versionStart=w.versionStart or now
-  if now<w.versionStart or now-w.versionStart>1000 then return end
+  -- Clock rollback can happen while hidden, after versionLastVisible was
+  -- cleared. Reset throttles independently, but never replenish work limits.
+  if w.versionTick and now<w.versionTick then
+    w.versionTick=nil;w.versionPing=nil
+  end
+  -- Count only eligible foreground time. Background/unsupported views clear
+  -- the previous timestamp, so time spent in another screen cannot consume
+  -- the discovery budget. Keep the lifetime budget bounded after timeout.
+  if w.versionLastVisible and now>=w.versionLastVisible then
+    w.versionElapsed=(w.versionElapsed or 0)+(now-w.versionLastVisible)
+  end
+  w.versionLastVisible=now
+  if (w.versionElapsed or 0)>1000 or (w.versionReads or 0)>=VERSION_MAX_READS then return end
   if w.versionTick and now-w.versionTick<20 then return end
   w.versionTick=now
-  if not w.versionPing or now-w.versionPing>=200 then
+  if (w.versionPings or 0)<VERSION_MAX_PINGS and (not w.versionPing or now-w.versionPing>=200) then
+    w.versionPings=(w.versionPings or 0)+1
     crossfireTelemetryPush(0x28,{0xEE,0xEA})
     w.versionPing=now
   end
   -- The CRSF Lua queue is shared. Only inspect a bounded number while this
-  -- dashboard is visible, and stop entirely after success or ten seconds.
+  -- dashboard is visible. Independent lifetime limits also bound repeated
+  -- one-frame visits, which may accumulate no measurable foreground time.
   for i=1,2 do
+    if (w.versionReads or 0)>=VERSION_MAX_READS then break end
+    w.versionReads=(w.versionReads or 0)+1
     local command,data=crossfireTelemetryPop()
     if not command then break end
     if command==0x29 and type(data)=='table' and data[1]==0xEA and data[2]==0xEE then
@@ -985,7 +1019,7 @@ local function refresh(w,event,touch)
   else originX,originY=w.zone.x,w.zone.y;width,height=w.zone.w,w.zone.h end
   rect(0,0,width,height,C.bg)
   local large=width>=LCD_W*0.95 and height>=LCD_H*0.95 and width>=300 and height>=240
-  if not full and not large then return end
+  if not full and not large then w.versionLastVisible=nil;return end
   discoverVersion(w)
   if full then
     local consumed=Review.input(w,event,touch,width,height)
@@ -1000,8 +1034,8 @@ local function refresh(w,event,touch)
 end
 return {
   review=Review, name="SignalView", options={{"Theme",CHOICE or STRING,CHOICE and 1 or "Dark",{"Dark","Rich Ivory","White"}},{ "LQ amber",VALUE,80,1,100},{"LQ red",VALUE,60,0,99},{"RSSI mode",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Manual","Off"}},{"RX amber",VALUE,-98,-130,-1},{"RX red",VALUE,-103,-130,-1},{"Recover s",VALUE,1,0,10},{"Footer 1",SOURCE,0},{"Footer 2",SOURCE,0},{"Footer 3",SOURCE,0},{"Footer 4",SOURCE,0},{"Antennas",CHOICE or STRING,CHOICE and 1 or "Auto",{"Auto","Single","Dual"}},{"History",CHOICE or STRING,CHOICE and 1 or "Both",{"Both","Receiver Signal","Link Quality"}}}, create=create,
-  update=function(w,options) w.options=defaults(options);scan(w) end,
-  refresh=refresh, background=function(w) Review.resetInput(w);sample(w) end
+  update=function(w,options) w.options=defaults(options);w.fallbackScanTime=nil;scan(w) end,
+  refresh=refresh, background=function(w) w.versionLastVisible=nil;Review.resetInput(w);sample(w) end
 }
 
 

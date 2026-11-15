@@ -1,17 +1,9 @@
-# SignalView 0.5.0
+# SignalView 0.5.1
 
-## Added
+SignalView now leaves a gap in the graphs when a second of telemetry is missing. After sampling resumes or a receiver reconnects in a new second, valid readings stay visible in history review.
 
-- Review up to 15 minutes of receiver signal and Link Quality history in full screen.
-- Hold a graph for one second and release, or hold Enter, to enter review. Scroll with the wheel, supported navigation controls or touch; short Exit or Live returns to the live dashboard.
-- Recording continues during review. The oldest data rolls off when the buffer fills; recorded history remains available during telemetry loss.
+Automatic RSSI warnings wait until the transmitter identifies itself as ELRS 4.x. If the module version is unknown or you run ELRS 3.x, select Manual to set your own thresholds.
 
-## Improved
+Module discovery pauses while the dashboard is hidden and limits retries across repeated visits. SignalView also spends less time searching for missing sensors and reuses memory when sampling telemetry.
 
-- Reuse graph geometry while inspecting history to reduce repeated calculations.
-- Preserve the selected antenna in historical readings, including ANT 2 in Single view.
-- Keep historical readings visible across normal sample-timing variation while preserving genuine gaps.
-
-## Updating
-
-From 0.4.0, replace `/WIDGETS/SignalView/main.lua` and restart the radio. Existing widget settings are retained. History is stored in memory and clears on restart; review is available only in full screen.
+**Updating from 0.5.0 or 0.4.0:** Replace `/WIDGETS/SignalView/main.lua` and restart the radio. Your widget settings carry over.

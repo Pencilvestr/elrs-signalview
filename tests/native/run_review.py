@@ -13,7 +13,7 @@ def run_case(pair):
             code=subprocess.run([sys.executable,str(HERE/'worker.py'),'--radio',radio,'--run-dir',str(folder),'--review-suite',suite],cwd=ROOT,stdout=output,stderr=subprocess.STDOUT,timeout=100).returncode
         except subprocess.TimeoutExpired: code=-1
     log=(folder/'run.log').read_text(encoding='utf-8',errors='replace')
-    errors=re.findall(r'.*(?:CPU limit|Error in widget|Script syntax error|PANIC|attempt to|not enough memory|Archive test failed).*',log)
+    errors=re.findall(r'.*(?:CPU limit|Error in widget|Script syntax error|Robustness test failed|PANIC|attempt to|not enough memory|Archive test failed).*',log)
     copied=folder/'sd/WIDGETS/SignalView/main.lua'
     source=(ROOT/'WIDGETS/SignalView/main.lua').read_bytes()
     checks={'process':code==0,'source_match':copied.exists() and copied.read_bytes()==source,'no_errors':not errors,'complete':'PHASE|complete' in log}
@@ -21,6 +21,9 @@ def run_case(pair):
         cases=dict(re.findall(r'SCROLLGAP\|([^|]+)\|(true|false)',log))
         checks['timing_cases']=len(cases)==10 and all(v=='true' for v in cases.values())
         checks['timing_complete']='SCROLLGAPDONE' in log
+    elif suite=='robustness':
+        cases=dict(re.findall(r'ROBUST\|([^|]+)\|(PASS)',log))
+        checks['robustness_complete']='ROBUSTDONE|PASS' in log and len(cases)==33
     else:
         cases=dict(re.findall(r'REVIEWCHECK\|([^|]+)\|(PASS)',log))
         checks['archive_complete']='REVIEWDONE|PASS' in log and 'REVIEWEDGES|PASS' in log
@@ -29,7 +32,7 @@ def run_case(pair):
     print(radio,suite,result['pass'],flush=True)
     return result
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--radios',nargs='+',choices=RADIOS,default=RADIOS);parser.add_argument('--suite',choices=['timing','archive','both'],default='both');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--radios',nargs='+',choices=RADIOS,default=RADIOS);parser.add_argument('--suite',choices=['timing','archive','robustness','both'],default='both');args=parser.parse_args()
     suites=['timing','archive'] if args.suite=='both' else [args.suite]
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool: results=list(pool.map(run_case,[(r,s) for r in args.radios for s in suites]))
     (HERE/'results/review'/('summary-'+args.suite+'.json')).write_text(json.dumps(results,indent=2))

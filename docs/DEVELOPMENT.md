@@ -43,7 +43,7 @@ The widget is intentionally a single installable Lua file. Supporting documentat
 
 ## Timing and state
 
-EdgeTX `getTime()` returns centiseconds. Acquisition interval is 20 ticks, rediscovery interval 200 ticks, graph window 3000 ticks and a one-second bucket 100 ticks. Version discovery uses a separate visible-only ten-second budget.
+EdgeTX `getTime()` returns centiseconds. Acquisition interval is 20 ticks, direct rediscovery interval 200 ticks, fallback-enumeration interval 1000 ticks, graph window 3000 ticks and a one-second bucket 100 ticks. In 0.5.1, version discovery counts only eligible foreground time toward its ten-second lifetime budget. It does not restart automatically after exhausting that budget.
 
 Each widget table owns sensor state, options, its latest diagnostic sample, plot buckets, alert timers and cached module version. Shared drawing-origin locals are reset at the beginning of every synchronous refresh. There is no disk persistence in the widget itself; EdgeTX persists its option values.
 
@@ -64,7 +64,7 @@ Never infer healthy values from missing sources or connect a trace across missin
 5. Exercise a full 30-second history window when changing sample/drawing loops.
 6. Update documentation, screenshot provenance and release notes when behavior changes.
 
-The 0.5.0 production Lua is the source of truth. The former local prototype builder is not part of the release pipeline. The release is promoted from the bench-tested candidate with version/comment changes only.
+The installable Lua is the source of truth. The former local prototype builder is not part of the release pipeline. The latest diagnostic sample is mutable and reused; plot buckets and archive records copy its scalar values and must never retain the sample table as a snapshot.
 
 ## Release process
 
@@ -75,3 +75,6 @@ See [RELEASING.md](RELEASING.md). GitHub CI performs lightweight syntax, link/as
 `Review.record` maintains parallel arrays capped at 901 records. Antenna metadata preserves both dual availability and selected path (1/2 single, 3/4 dual). `Review.window` uses a binary search and at most 32 render records, preserving valid Y caches and returning a transient timing-validity boundary. `Review.input` implements deliberate full-screen entry and navigation. `Review.render` uses a separate historical view so current sensor acquisition continues independently.
 
 Normal sample timestamps need not be exactly one second apart. The validity boundary may extend to the next adjacent-second record, but never across a missing second or known reconnection. It is returned from the window lookup rather than stored in every record. The archive adds retained memory; see the [performance record](PERFORMANCE.md).
+
+
+Discovery also maintains independent lifetime ping-attempt and queue-read counters in 0.5.1. They do not reset when the widget is hidden or the clock moves backward. Archive updates distinguish a persistent boundary flag from a genuinely new bucket within an already archived second by comparing bucket timestamps.

@@ -35,3 +35,8 @@ Use `worker.py --radio tx16smk3 --run-dir tests/native/results/theme-final --the
 ## History-review tests (0.5.0)
 
 `python tests/native/run_review.py --suite timing` runs the ten readout-timing/gap cases on all five targets. `--suite archive` runs the bounded archive cases and accelerated fill/wrap checks; `--suite both` runs both. Use `--radios` to select targets. `worker.py --review-suite timing` or `archive` selects the corresponding test-only observer. No test helpers are included in the installation ZIP.
+
+
+## Development robustness checks
+
+Run `python tests/native/run_review.py --suite robustness` for source-matched version gating, skipped-second graph continuity, visible discovery budgeting, fallback scanning and stale-sample clearing checks on all five native targets. The 33 cases also cover later samples in post-gap/reconnected buckets, repeated short screen visits with empty or busy queues, failed pushes, late replies and clock rollback. The existing `--suite both` runs timing and archive checks.
