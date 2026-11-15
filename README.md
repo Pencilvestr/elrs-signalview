@@ -17,9 +17,10 @@ SignalView shows ExpressLRS receiver signal and Link Quality on your EdgeTX colo
 
 The live dashboard works in full screen or in a large single-widget area. Open it **full screen** to review a flight. Small widget areas stay blank.
 
-**Updating from 0.4.0?** Replace `main.lua` and restart the radio. Your widget settings carry over.
+### Updating from an earlier version
 
-**Updating from 0.3.0?** Write down your settings and remove the old widget instance first. After replacing `main.lua` and restarting, add SignalView again and restore your settings. EdgeTX saves widget options by position, and Theme moved to the top of the menu in 0.4.0. [Installation and rollback guide](docs/INSTALLATION.md)
+- **From 0.4.0** Replace `main.lua` and restart the radio. Your widget settings carry over.
+- **From 0.3.0** Write down your settings and remove the old widget instance first. After replacing `main.lua` and restarting, add SignalView again and restore your settings. EdgeTX saves widget options by position, and Theme moved to the top of the menu in 0.4.0. [Installation and rollback guide](docs/INSTALLATION.md)
 
 ## Review a flight
 
@@ -35,13 +36,21 @@ SignalView keeps recording while you scroll. Once it has 15 minutes of history, 
 
 ## Reading the dashboard
 
-**Link Quality and receiver signal.** The Link Quality bar is green when the link is healthy. On the graphs, receiver signal normally appears green and Link Quality blue. Readings and traces turn amber or red when they cross your warning thresholds. These colors help you spot a change in the link. They can’t tell you how much range you have left.
+### Link Quality and receiver signal
 
-**Antennas.** Auto starts with one reading. If the receiver reports valid RSSI on both antenna paths for one second, SignalView shows both, with a solid trace for one and a dashed trace for the other. A brief dropout on one path keeps the two-antenna layout. If you lose telemetry completely and reconnect with only one valid path, Auto returns to a single reading after five seconds. This follows the telemetry the receiver reports. You can also choose **Single** or **Dual** yourself.
+The Link Quality bar is green when the link is healthy. On the graphs, receiver signal normally appears green and Link Quality blue. Readings and traces turn amber or red when they cross your warning thresholds. These colors help you spot a change in the link. They can’t tell you how much range you have left.
 
-**Telemetry loss.** If Link Quality and both antenna readings disappear, the current values change to `--`. The graphs freeze and a timer shows how long telemetry has been lost. You can still review the lead-up to the loss. When telemetry returns, a gap marks the outage.
+### Antennas
 
-**Footer.** The four readings default to TX power, RF mode, receiver SNR and downlink quality. You can change them with the EdgeTX source picker. SignalView shows a readable name for known ELRS 3.x and 4.x RF modes. Larger screens also show modulation and band when known. The header shows the transmitter module’s firmware version when the module reports it.
+Auto starts with one reading. If the receiver reports valid RSSI on both antenna paths for one second, SignalView shows both, with a solid trace for one and a dashed trace for the other. A brief dropout on one path keeps the two-antenna layout. If you lose telemetry completely and reconnect with only one valid path, Auto returns to a single reading after five seconds. This follows the telemetry the receiver reports. You can also choose **Single** or **Dual** yourself.
+
+### Telemetry loss
+
+If Link Quality and both antenna readings disappear, the current values change to `--`. The graphs freeze and a timer shows how long telemetry has been lost. You can still review the lead-up to the loss. When telemetry returns, a gap marks the outage.
+
+### Footer
+
+The four readings default to TX power, RF mode, receiver SNR and downlink quality. You can change them with the EdgeTX source picker. SignalView shows a readable name for known ELRS 3.x and 4.x RF modes. Larger screens also show modulation and band when known. The header shows the transmitter module’s firmware version when the module reports it.
 
 ## Settings
 
@@ -60,7 +69,9 @@ Open **Widget Settings** on the radio. EdgeTX saves these choices for each widge
 | Antennas | Auto | Choose Auto, Single or Dual. |
 | History | Both | Show both graphs, receiver signal only, or Link Quality only. SignalView keeps recording both. |
 
-**Choosing an RSSI mode.** On ELRS 4.x, Auto uses the sensitivity limit for the current RF mode. Amber is 10 dB above that limit and red is 5 dB above it. For example, a mode with a −105 dBm limit gives you thresholds of −95 and −100 dBm. On ELRS 3.x, choose Manual or Off. In 0.5.0, if the header hasn’t identified the module version, use Auto only if you’ve confirmed the transmitter runs ELRS 4.x. [Settings guide](docs/SETTINGS.md) · [RF-mode reference](docs/RF-MODES.md)
+### Choosing an RSSI mode
+
+On ELRS 4.x, Auto uses the sensitivity limit for the current RF mode. Amber is 10 dB above that limit and red is 5 dB above it. For example, a mode with a −105 dBm limit gives you thresholds of −95 and −100 dBm. On ELRS 3.x, choose Manual or Off. In 0.5.0, if the header hasn’t identified the module version, use Auto only if you’ve confirmed the transmitter runs ELRS 4.x. [Settings guide](docs/SETTINGS.md) · [RF-mode reference](docs/RF-MODES.md)
 
 ## Screenshots
 
