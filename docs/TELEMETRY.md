@@ -4,7 +4,7 @@
 
 ## Sensor mapping
 
-Names are resolved case-insensitively and IDs are cached. Lookup first uses `getFieldInfo()` for the ten known names, then a case-insensitive `sources()` fallback if needed. Measurements use `getSourceValue()` so missing, current and stale readings can be distinguished.
+Names are resolved case-insensitively and IDs are cached. Lookup first uses `getFieldInfo()` for the ten known names. Direct lookups run every two seconds. In 0.5.1, unresolved names use a case-insensitive `sources()` fallback at most every ten seconds; resolved legacy names are cached for direct lookup. Changing widget settings requests an immediate rescan. Measurements use `getSourceValue()` so missing, current and stale readings can be distinguished.
 
 | Sensor | Meaning | Display |
 | --- | --- | --- |
@@ -44,7 +44,7 @@ Once graph data has been recorded, losing all three main sources (Link Quality a
 
 The header reads `Link data lost`. The unavailable RSSI-threshold line becomes `History frozen - N s`, measuring time since the widget first observed every main graph source unavailable. Live readings continue to follow EdgeTX source availability and show `--` when unavailable. The time labels remain `-30 s`, `-15 s` and `Now`; while frozen, they describe the retained window ending at its final recorded bucket, not the advancing wall clock.
 
-Freezing follows EdgeTX's current/stale flags, so it may occur after the last received packet. It cannot distinguish return-telemetry loss from total RC-link loss or confirm receiver failsafe. One remaining valid main source resumes recording. Reconnection starts a separate line segment; the live 30-second window then advances normally, so old data outside that window expires. After a long outage the old history can disappear on reconnection. History stays in memory only and is cleared when the widget/radio restarts.
+Freezing follows EdgeTX's current/stale flags, so it may occur after the last received packet. It cannot distinguish return-telemetry loss from total RC-link loss or confirm receiver failsafe. One remaining valid main source resumes recording. Reconnection starts a separate line segment. In 0.5.1, skipped acquisition seconds also break the trace, while adjacent-second callback jitter remains connected; the live 30-second window then advances normally, so old data outside that window expires. After a long outage the old history can disappear on reconnection. History stays in memory only and is cleared when the widget/radio restarts.
 
 The line joins bucket values; it is not a packet-by-packet trace or exact event timestamp. It preserves short low-value dips but does not expose every recovery inside the same second. No history is written to disk. Switching between supported widget and full-screen views keeps the same instance/history; model changes, restarts and re-adding the widget start a new history.
 
@@ -54,7 +54,7 @@ RSSI graphs use a fixed -120 to -40 dBm scale, and LQ uses 0–100%. Values outs
 
 SignalView sends a directed CRSF Device Ping (0x28) while its dashboard is visible, then reads bounded Device Info (0x29) responses from the shared Lua CRSF queue. It validates handset destination 0xEA, transmitter origin 0xEE, and the ASCII ELRS serial signature before decoding the software-version bytes.
 
-Discovery lasts at most approximately ten visible seconds, with a ping no more often than every two seconds (at most six at exact boundary timing) and at most two queue reads per 200 ms. It stops after success or timeout. The version is cached only for that widget instance and is not inferred from RFMD or an installed tool script. Restart/recreate the widget after module firmware changes or to retry a timed-out lookup.
+In 0.5.1, discovery uses at most approximately ten eligible foreground seconds; background callbacks and unsupported widget areas pause this budget. Version 0.5.0 instead counted elapsed time after the first query. Discovery runs with a ping no more often than every two seconds and at most two queue reads per 200 ms. In 0.5.1, independent lifetime limits cap it at six ping attempts (including failed pushes) and 102 queue-read calls (including empty reads), even across brief screen visits or clock rollback. It stops after success, timeout or exhaustion of the read limit. After the final ping, remaining reads can still receive its reply. Clock rollback resets scheduling timestamps without replenishing these limits. The version is cached only for that widget instance and is not inferred from RFMD or an installed tool script. Restart/recreate the widget after module firmware changes or to retry a timed-out lookup.
 
 The header shows `ELRS 4.0.0`, for example, or `ELRS 4.x dev` for unknown minor/patch bytes. Without a usable reply it retains `ELRS LINK`. Versions older than 3 are not decoded by this implementation.
 
@@ -72,4 +72,7 @@ The main readings show the selected historical record. Recording continues, so a
 
 Normal timestamp jitter between adjacent recorded seconds does not blank the main readings. Missing seconds, known reconnections and individual unavailable values remain gaps. Review never fills them with invented readings.
 
-Review timestamps are radio uptime, not flight duration. Very early windows can show negative axis labels such as `-1:50` before uptime zero; this display limitation does not change stored values. Module-discovery timeout and Auto RSSI version requirements are unchanged from 0.4.0.
+Review timestamps are radio uptime, not flight duration. Very early windows can show negative axis labels such as `-1:50` before uptime zero; this display limitation does not change stored values. The 0.5.1 changes to discovery timing and Auto RSSI gating are described above and in [Settings](SETTINGS.md#auto).
+
+
+In 0.5.1, a break before a bucket does not invalidate later samples in that same bucket. New-second reconnections preserve valid recorded readings; two distinct connections within one second still invalidate that entire second conservatively.

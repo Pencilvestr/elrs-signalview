@@ -22,7 +22,7 @@ The final path must be /WIDGETS/SignalView/main.lua.
 Restart the radio and choose SignalView in the model's widget setup.
 Use one widget with the top bar OFF, or open full screen. Small areas stay blank.
 
-Updating from 0.4.0: replace the Lua and restart. Keep your existing widget
+Updating from 0.5.0 or 0.4.0: replace the Lua and restart. Keep your existing widget
 instance and settings. For older versions, see docs/INSTALLATION.md in the repo.
 
 History review requires full screen. Hold the graph for one second and release,
@@ -33,7 +33,7 @@ archive and clears on restart. Recording continues during review.
 Theme defaults to Dark; Rich Ivory and White are also available.
 History defaults to Both; Receiver Signal and Link Quality select one graph.
 Antennas defaults to Auto; Single and Dual remain available.
-LQ amber/red defaults are 80%/60%. Auto RSSI is for confirmed ELRS 4.x only;
+LQ amber/red defaults are 80%/60%. Auto RSSI requires a discovered ELRS 4.x module version;
 use Manual or Off for other versions. Manual RX amber/red defaults: -98/-103 dBm.
 Very early history windows may display negative uptime labels. See the
 telemetry reference in the repository for limitations and discovery behavior.

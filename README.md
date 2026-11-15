@@ -2,7 +2,7 @@
 
 SignalView shows ExpressLRS receiver signal and Link Quality on your EdgeTX color radio. During a flight, you can watch both graphs and see when either reading starts to drop. After landing, you can scroll back through the last 15 minutes without opening a log viewer.
 
-**Version 0.5.0** · [Download the widget](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.5.0/elrs-signalview-0.5.0.zip) · [Release notes](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.5.0)
+**Version 0.5.1** · [Download the widget](https://github.com/Pencilvestr/elrs-signalview/releases/download/v0.5.1/elrs-signalview-0.5.1.zip) · [Release notes](https://github.com/Pencilvestr/elrs-signalview/releases/tag/v0.5.1)
 
 ![SignalView connecting to a receiver and displaying changing signal strength and Link Quality](docs/images/signalview-demo.gif)
 
@@ -19,7 +19,7 @@ The live dashboard works in full screen or in a large single-widget area. Open i
 
 ### Updating from an earlier version
 
-- **From 0.4.0** Replace `main.lua` and restart the radio. Your widget settings carry over.
+- **From 0.4.0 or 0.5.0** Replace `main.lua` and restart the radio. Your widget settings carry over.
 - **From 0.3.0** Write down your settings and remove the old widget instance first. After replacing `main.lua` and restarting, add SignalView again and restore your settings. EdgeTX saves widget options by position, and Theme moved to the top of the menu in 0.4.0. [Installation and rollback guide](docs/INSTALLATION.md)
 
 ## Review a flight
@@ -71,7 +71,7 @@ Open **Widget Settings** on the radio. EdgeTX saves these choices for each widge
 
 ### Choosing an RSSI mode
 
-On ELRS 4.x, Auto uses the sensitivity limit for the current RF mode. Amber is 10 dB above that limit and red is 5 dB above it. For example, a mode with a −105 dBm limit gives you thresholds of −95 and −100 dBm. On ELRS 3.x, choose Manual or Off. In 0.5.0, if the header hasn’t identified the module version, use Auto only if you’ve confirmed the transmitter runs ELRS 4.x. [Settings guide](docs/SETTINGS.md) · [RF-mode reference](docs/RF-MODES.md)
+On ELRS 4.x, Auto uses the sensitivity limit for the current RF mode. Amber is 10 dB above that limit and red is 5 dB above it. For example, a mode with a −105 dBm limit gives you thresholds of −95 and −100 dBm. On ELRS 3.x, choose Manual or Off. Auto waits until SignalView identifies the transmitter as ELRS 4.x. If the version stays unknown, select Manual to set your own thresholds. [Settings guide](docs/SETTINGS.md) · [RF-mode reference](docs/RF-MODES.md)
 
 ## Screenshots
 

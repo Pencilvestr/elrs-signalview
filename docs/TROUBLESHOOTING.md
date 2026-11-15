@@ -11,14 +11,14 @@
 | Second antenna absent | Check whether 2RSS is current/numeric. The widget cannot identify antenna hardware independently. |
 | RSSI appears muted | Check Auto mode support, RFMD freshness, module major version, and threshold ordering. |
 | `RSSI auto unavailable` | RFMD is missing, stale or absent from the verified 4.x table. Use confirmed Manual thresholds. |
-| `Auto needs ELRS 4.x` | A different major version was detected. Manual mode is available; automatic 3.x decoding is not implemented. |
+| `Auto needs ELRS 4.x` | The module version is unknown or is not ELRS 4.x. Allow discovery while the dashboard is visible, or use Manual with appropriate thresholds. Automatic 3.x decoding is not implemented. |
 | `Use Auto/Manual/Off` | Select Auto, Manual or Off under RSSI mode. Version 0.4.0 uses a dropdown and defaults empty/uninitialized settings to Auto. Older builds or firmware without CHOICE use a text field accepting those names. |
 | `RSSI settings invalid` | RX red must be more negative than RX amber. |
 | `Check LQ settings` | LQ red must be lower than LQ amber. |
 | Header stays `ELRS LINK` | No usable module reply arrived during the discovery window. Restart/recreate the widget to retry; compare with the official ELRS tool. Avoid another CRSF-querying widget during discovery. |
 | Header version does not change after flashing | Version is cached for the widget instance. Restart the radio/widget. |
 | Graph is empty on the left at startup | Only recorded history is shown. Wait at least 30 seconds; earlier values are not invented. |
-| A later graph gap appears | Missing/stale readings mark a one-second bucket as a gap. Continuous recorded data should reach the left edge after the window fills. |
+| A later graph gap appears | Missing/stale readings mark a one-second bucket as a gap. In 0.5.1, skipped acquisition seconds also break the graph. Continuous recorded data should reach the left edge after the window fills. |
 | Current color recovers later than the graph | Expected: current text/bar uses recovery delay and margin, while history uses raw colors. |
 | Very strong RSSI looks flat | The plot ceiling is -40 dBm; the numeric reading still shows the reported value. |
 | Settings seem wrong after an upgrade | Check release notes for schema changes; record values, remove and re-add the instance if needed. |
